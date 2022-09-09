@@ -1,0 +1,93 @@
+firstaid.Init:
+{
+	var compendium.chart Pothanit|Frog|Deer|Scavenger|Wild|Silver|Eel|Badger|Blood Dryad|Equine|Blood Nyad|Glutinous|Kelpie|Trollkin|Boggle|Cougar|Dwarven|Elothean|Elven|Gnome|Gor'Tog|Halfling|Human|Kaldar|Prydaen|Rakash|S'Kra Mur|Boobrie|Snow Goblin|Thunder Ram|Copperhead|Malodorous|Dusk|Young Ogre|Bison|Rock Troll|Sun Vulture|Fire Maiden|Moss Mey|Prereni|Vela'tohr|Peccary|Blue|Kashika|Caiman|Sluagh|Wood Troll|Gidii|Black Goblin|Granite|Rhoat Moda|River Sprite|Bawdy Swain|Swamp Troll|Heggarangi Boar|Warcat|Blacktip Shark|Piranha|Lanky Grey Lach|Blacktip Shark|Piranha|Lanky Grey Lach|Ape|Merrows|Selkie|Geni|Trekhalo|Giant|Bobcat|Snowbeast|Arzumos|Caracal|Firecat|Gryphon|Seordmaor|Bull|Mammoth|Hawk|Armadillo|Shark|La'heke|Angiswaerd|Toad|Elsralael|Celpeze|Spider|Silverfish|Crab|Westanuryn|Dolomar|Warklin|Wasp|Dryad|Fendryad|Sprite|Alfar|Frostweaver|Spriggan|Gremlin|Cyclops|Ati'ket|S'lai|Adan'f|Kra'hei|Faenrae|Bear|Barghest|Shalswar|Dyrachis|Poloh'izh|Korograth|Larva|Bizar|Pivuh|Vulture|Unyn|Moruryn|Moth|Kartais|Colepexy|Vykathi|Wyvern|Elpalzi|Xala'shar
+	var compendium.skill 20|20|30|30|40|40|50|50|60|60|70|70|80|80|90|90|100|100|100|100|100|100|100|100|100|100|100|120|120|120|140|140|160|160|180|180|180|200|200|220|220|230|240|240|260|260|260|280|300|300|320|320|340|340|360|360|380|380|400|380|380|400|410|420|430|440|450|460|470|480|490|500|510|520|530|540|550|560|570|580|590|600|610|620|630|640|650|660|670|680|690|700|710|720|730|740|750|760|770|780|790|800|810|820|830|840|850|860|870|880|890|900|910|920|930|940|950|960|970|980|990|1000|1050|1050
+	var compendium.minPosition 1
+	var compendium.cooldown 0
+	var SuccesfulReadsSinceLastReset 0
+	var First_Aid.Time 0
+	if ($First_Aid.Ranks > 300) then var compendium.minPosition 16
+	if ($First_Aid.Ranks > 400) then var compendium.minPosition 32
+	evalmath compendium.position (%compendium.minPosition - 2)
+	echo %compendium.position
+	return
+}
+
+First_Aid.Start:
+First_Aid.Round:
+{
+	if ("%compendium.cooldown" = "1") then return
+	GOSUB FirstAid.TurnPage
+	GOSUB FirstAid.Study
+	if ("%CurrentPrimarySkill" = "First_Aid") then var CurrentRoundFinished 1
+	return
+}
+
+
+	
+FirstAid.GetCompendium:
+{
+	pause .01
+	GOSUB StowHands
+	GOSUB Get $Enescu.FirstAid.Compendium.Noun
+	GOSUB utility.Command "open my $Enescu.FirstAid.Compendium.Noun" "^You"
+	GOTO FirstAid.Study
+}
+
+FirstAid.TurnPage:
+{	
+	pause .01
+	math compendium.position add 1
+	if (%compendium.skill(%compendium.position) < $Scholarship.Ranks) then
+	{
+		if ("%compendium.chart(%compendium.position)" = "") then GOSUB FirstAid.ResetPosition
+	}
+	else
+	{
+		GOSUB FirstAid.ResetPosition
+	}
+
+	FirstAid.TurnPage.Internal:
+	if (%compendium.cooldown = 1) then return
+	matchre FirstAid.TurnPage.Internal %Repeat
+	matchre return ^You turn|does not exist
+	send turn my $Enescu.FirstAid.Compendium.Noun to %compendium.chart(%compendium.position)
+	matchwait 1
+
+	return
+}
+
+FirstAid.ResetPosition:
+{
+
+	var compendium.position 0
+	if (%SuccesfulReadsSinceLastReset = 0) then 
+	{
+	
+		var compendium.cooldown 1
+		var First_Aid.Time $gametime
+	
+	}
+	var SuccesfulReadsSinceLastReset 0
+	return
+}
+
+
+FirstAid.Study:
+{
+	matchre FirstAid.STUDY %Repeat
+	matchre FirstAid.Count You begin
+	matchre Return You continue
+	matchre FirstAid.Count moment of clarity|having a difficult time|^You attempt to|^You begin studying
+	matchre FirstAid.GetCompendium ^You need to be holding
+	matchre Return Why do you need
+	send study my $Enescu.FirstAid.Compendium.Noun
+	matchwait 5
+	return
+}
+
+FirstAid.Count:
+{
+	math SuccesfulReadsSinceLastReset add 1
+	return
+}

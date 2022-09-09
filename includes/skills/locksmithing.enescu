@@ -1,0 +1,32 @@
+locksmithing.Init:
+{
+	var trainingBoxDone 0
+	return
+}
+
+locksmithing.Start:
+locksmithing.Round:
+{
+	pause .2
+	if (%CurrentPrimarySkill = Locksmithing) then var CurrentRoundFinished 1
+	matchre locksmithing.Round %Repeat
+	matchre locksmithing.GetBox ^But you aren't holding
+	matchre locksmithing.Disable ^The lock feels warm
+	matchre return ^Roundtime
+	send lock my $Enescu.Locksmithing.Trainer.Noun;pick my $Enescu.Locksmithing.Trainer.Noun
+	matchwait 3
+}
+
+locksmithing.Disable:
+{
+	var trainingBoxDone 1
+	if (%CurrentPrimarySkill = Locksmithing) then var CurrentRoundFinished 1
+	return
+}
+
+locksmithing.GetBox:
+{
+	GOSUB StowHands
+	GOSUB Get "$Enescu.Locksmithing.Trainer.Noun"
+	GOTO locksmithing.Round
+}

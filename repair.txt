@@ -1,0 +1,9 @@
+start:
+var RepeatText ...wait|type ahead
+
+
+appraise:
+
+matchre metal is made with metal.
+matchre cloth 
+send app my %1

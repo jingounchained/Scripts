@@ -1,0 +1,3931 @@
+####################################
+# DUSKRUIN SCRIPT BY SHROOM
+# VERSION FOR 2020 
+# Updated 7/22/20
+#
+# REQUIRES SPELLTIMER PLUGIN
+#
+# MAKE SURE YOU HAVE THE DUSKRUIN MAP!!!
+# WITH MAP REPO - YOU HAVE TO DRAG IT OUT OF 'FESTIVAL ARCHIVE' FOLDER INTO MAIN 'MAPS' FOLDER
+# 
+# NOTE ON ARENA: THE MOBS FLEX SO YOU ARE BEST SUITED ONLY IF ALL YOUR COMBAT SKILLS ARE ~AT LEVEL~ - MEANING YOUR WEAPONS ARE EQUAL WITH DEFENSES
+# YOU NEED TO SET THREE DIFFERENT WEAPONS - A MELEE (EDGED) WEAPON, A BLUNT WEAPON, A THROWN WEAPON - NEED ALL THREE TO BE OPTIMAL!
+# IF YOU DO NOT HAVE MELEE/THROWN/BLUNT SKILLS ALL ROUGHLY EQUAL TO YOUR COMBATS YOU ARE PROBABLY BETTER OFF DOING LABYRINTH 
+# 
+# LABYRINTH MODE CAN BE BETTER ANYWAY FOR BLOODSCRIP
+# YOU CAN EARN 200+ BLOODSCRIP PER RUN AND IF YOU CATCH A MONKEY/RAT YOU CAN GIVE IT TO THE CHILD FOR 500 BLOODSCRIP!
+#
+# MODES:
+# 1- ARENA - (~150-250 MAX bloodscrip per run + 2-3 incidentals ) (Have to do PERFECT Run with 25 kills and 30 seconds remaining for 250 scrip)
+#    THIS IS A COMBAT ONLY MODE - RECOMMENDED FOR PEOPLE WHO CAN KILL STUFF FAST (High Level Necros/Clerics especially) 
+#    START AT ENTRANCE OF DUSKRUIN OR NEAR ARENA TO DO ARENA
+#    MAKE SURE YOU HAVE ALL YOUR ARMOR ON FIRST!!! MAKE SURE YOU SET YOUR HARDEST HITTING WEAPONS
+#
+##
+# 2 - LABYRINTH - (~150~250 bloodscrip per run + 2-3 incidentals + chance of a monkey/rat 
+#     START OUTSIDE OR IN THE LABYRINTH TO RUN LABYRINTH
+#     NO COMBAT IN THIS MODE - ALMOST ZERO CHANCE OF DEATH
+#     IF YOU CATCH A RAT/MONKEY - YOU CAN GIVE IT TO THE CHILD FOR 500 EXTRA BLOODSCRIP
+#
+##
+# 3 - BANK HEIST - (200ish bloodscrip + incidentals)
+#     START NEXT TO A BATTLEMASTER, BRIGAND OR ENFORCER TO DO BANK HEIST
+#     THIS IS A COMBAT MODE 
+#
+# YOU ~CAN~ START SCRIPT WHILE INSIDE THE ARENA OR LABYRINTH
+# BUT ~NOT~ WHILE INSIDE BANK HEIST! 
+# NEED TO START SCRIPT ~AT THE TASK GIVER~ FOR BANK HEIST TO WORK PROPERLY!!!
+#
+# DO NOT RESTART SCRIPT IN THE MIDDLE OF BANK HEIST!
+# YOU CAN RESTART IN THE MIDDLE OF ARENA OR LABYRINTH
+#
+# SET ALL YOUR VARIABLES BELOW!!!
+###################################
+gosub DEFAULT_VARS
+gosub GUILD.CHECK
+RESTART:
+#####################################
+# SET ALL YOUR VARIABLES BELOW 
+######################
+# YOU MUST SET YOUR MAIN LOOT CONTAINERS 
+## LARGE.BAG SHOULD BE YOUR ABSOLUTE LARGEST CONTAINER IN CASE OF MASSIVE ITEMS
+var MAIN.BAG rucksack
+var SECOND.BAG bag
+var LARGE.BAG hip pouch
+# SET SPECIFIC ITEMS TO GO INTO YOUR SPECIFIC BAGS
+# (Corresponds to the same bags above ie - BAG1 = MAIN.BAG )
+var BAG1.LOOT item1|item2|item3
+var BAG2.LOOT item1|item2|item3
+var BAG3.LOOT item1|item2|item3
+## TRASH.LOOT THROWS AWAY ANY OF THIS LOOT IF IT FINDS IN THE ARENA PACKAGES
+### DO NOT BE AN IDIOT AND MAKE THIS BLANK OR END WITH A | - SET TO NULL TO THROW NOTHING AWAY
+var TRASH.LOOT gown|hairbeads|tunic|dress
+## LOOP (ON or OFF) - LOOP ON TO GO IN CONTINUOUS LOOPS UNTIL OUT OF PASSES
+var LOOP ON
+## LOOT HEIST MOBS? (ON or OFF) (ON GENERATES A LOT OF CRAP LOOT - Recommend leaving OFF) 
+var LOOT.HEIST OFF
+## REDEEM BLOODSCRIP? (ON or OFF) Redeem bloodscrip when you pick it up in Heist/Maze
+var REDEEM OFF
+## MONKEY/RAT SEARCH (OFF or ON) (Goes into Search Mode for monkey mode in Maze - Will run around about 5x more than normal before searching to look for monkeys)
+var MONKEY.SEARCH ON
+## MONKEY.STOP (ON or OFF) - IF ON - WILL TURN OFF LOOP WHEN YOU GET A MONKEY/RAT SO YOU CAN SELL IT IF YOU WANT
+var MONKEY.STOP ON
+## MONKEY/RAT EXTREME SEARCH (OFF or ON) (SET THIS ON ONLY IF YOU WANT TO FOCUS ON GETTING A RAT/MONKEY ABOVE ALL ELSE
+## THIS WILL RUN AROUND LOOKING FOR A RAT/MONKEY NONSTOP - IT WILL NOT START SEARCHING UNTIL IT FINDS A RAT ~OR~ THERE IS ONLY 5 MINUTES LEFT IN THE HOUR TIMER
+## WARNING: TURNING THIS ON WILL MAKE YOU LABYRINTH RUNS ~~~MUCH~~~ LONGER 
+var MONKEY.EXTREME OFF
+## USE MULTIPLIER? Will attempt to use Multipliers before run
+var MULTIPLIER OFF
+
+######################################################################
+### ARENA ONLY VARIABLES - IF DOING ARENA - YOU MUST SET THESE VARIABLES
+# IF THIEF - PICK YOUR HARDEST HITTING BACKSTAB WEAPON FOR MELEE
+# OTHER GUILDS - PICK YOUR BIGGEST/MOST DAMAGING MELEE WEAPON (2HB/2HE/Pike/Staff preferred) 
+var MELEE.WEAPON mirror blade
+## SET A HEAVY HITTING BLUNT WEAPON FOR KILLING CLAY MAGES/PUNCTURE IMMUNE MOBS (Will switch to this weapon for clay mages) 
+var BLUNT.WEAPON kertig maul
+# THROWN.WEAPON IS MANDATORY (ARENA ONLY) SO YOU CAN HIT FLYING TARGETS!!
+var THROWN.WEAPON hammer
+## MAGE.THROW ON TO USE YOUR THROWN WEAPON FOR MAGES ~INSTEAD~ OF BLUNT MELEE 
+var MAGE.THROW OFF
+## LOB.ONLY (ON or OFF) ON TO ~ONLY~ USE THROWING - NO MELEE AT ALL!!
+var LOB.ONLY OFF
+## THROW TYPE (use LOB or THROW) RECOMMEND LOB UNLESS USING A BLUNT WEAPON
+## THROW HITS HARDER BUT COULD STICK (RARE - UNLESS ITS A PUNCTURE WEAPON LIKE THROWING BLADES!)
+## LOB WILL NEVER EVER STICK! 
+### ~DO NOT USE HURL~ OR IT WILL STICK GUARANTEED!!!!!
+var throwtype throw
+## MAGIC USERS - HOW MUCH MANA TO PUT INTO YOUR SPELLS?
+var MANA 64
+## FOCI ONLY USED FOR NECROS 
+var TMFOCI sphere
+var RITUALFOCI spellbook
+## KHRI to use if thief (Use KHRI2 If you are unable to put more than a few khri up at once)
+var KHRI prowess steady focus hasten flight
+var KHRI2 strike harrier guile terrify sagacity
+## CAST MAGIC (TURNING OFF WILL SKIP OFFENSIVE CASTING) 
+var Cast.Magic ON
+### SET THE 2 SPELLS YOU WANT TO USE (GO FOR FASTEST KILLING) 
+if ("$guild" = "Cleric") then var prep hh
+if ("$guild" = "Cleric") then var prep2 hot
+if ("$guild" = "Moon Mage") then var prep burn
+if ("$guild" = "Moon Mage") then var prep2 do
+if ("$guild" = "Warrior Mage") then var prep BG
+if ("$guild" = "Warrior Mage") then var prep2 DB
+if ("$guild" = "Warrior Mage") then var prep3 MAB
+if ("$guild" = "Ranger") then var prep stamp
+if ("$guild" = "Ranger") then var prep2 cac
+if ("$guild" = "Necromancer") then var prep VIV
+if ("$guild" = "Necromancer") then var prep2 SV
+if ("$guild" = "Paladin") then var prep smh
+if ("$guild" = "Paladin") then var prep2 reb
+if ("$guild" = "Bard") then var prep bos
+if ("$guild" = "Bard") then var prep2 bos
+if ("$guild" = "Empath") then var prep paralysis
+if ("$guild" = "Empath") then var prep2 paralysis
+if ("$guild" = "Trader") then var prep star
+if ("$guild" = "Trader") then var prep2 ars
+###############################################################
+## END OF USER VARIABLES 
+###############################################################
+###############################################################
+var killcount 0
+eval TRASH.LOOT replacere("%TRASH.LOOT", "\|+", "|")
+eval TRASH.LOOT replacere("%TRASH.LOOT", "\|$", "")
+eval TRASH.LOOT replacere("%TRASH.LOOT", "^\|", "")
+var LAST INIT
+goto INIT
+
+DEFAULT_VARS:
+## DEFAULT VARIABLES 
+## DONT TOUCH 
+var scrip 0
+var prep null
+var prep2 null
+var prep3 null
+var SNAP OFF
+var listen 0
+var watch 0
+var observe 0
+var watched 0
+var rope 0
+var guard 0
+var steal 0
+var pace 0
+var track 0
+var verb jump
+var joiner null
+var RANGED OFF
+var TARGET OFF
+put #tvar COINS 0
+var RUN.SCRIP 0
+var TOTAL.SCRIP 0
+var TOTAL.COINS 0
+var killcount 0
+var scriptloop 0
+var smiteloop 0
+var magicloop 0
+var joiner null
+var chaseloop 0
+put #echo >Log #00fdb8 **** Shroom's Duskruin Script Initiated! Enjoy!
+return
+
+
+INIT:
+gosub stowing
+var arena 0
+if_1 then goto %1
+
+TOP:
+echo ==============================
+echo *** DUSKRUIN SCRIPT ACTIVE
+echo ==============================
+var ATTACK JAB
+gosub clear
+if ("$preparedspell" != "None") then put rele
+pause 0.1
+action echo *** MONSTER IS FLYING!;goto RANGED.SWITCH when ^It's flying out of reach\!|^You\'ll have to wait until the .+ decides to stop flying
+action goto PRE_FIGHTING when ^You make your way deeper inside the bank\.|You\'re already busy making your way out 
+action goto FINISHED when ^A pair of surly attendants escorts you from the arena floor
+action goto DONE.PREP when You've run out of time
+action goto FUCKINGPWNED when ^You've been defeated\. You'll be dragged out of the arena
+action goto FUCKINGPWNED when ^Traumatologist Usdiwi walks over to you and heals you of all your injuries
+action goto MAZE.DONE when ^A surly Dwarf stomps in and glowers at you in the dim gloom
+action goto VAULT.DONE when ^Satisfied with your efforts\, you escape|You pass a group of .* who get you patched up|^Suddenly\, a .* surrounds you\!
+action send get %MELEE.WEAPON when ^Wouldn't it be better if you used a melee weapon\?
+action var verb lean when you could try to lean out of the way\!
+action var verb jump when you could try to jump over it\!
+action var verb bob when you could try to bob back and forth\!
+action var verb pedal when you could try to pedal back out of the way\!
+action var verb cower when you could try to cower into a smaller target\!
+action var verb duck when you could try to duck down\!
+action var verb leap when you could try to leap 
+action var verb duck when you could try to duck
+action var rope 1 when ^You see an oil lamp overhead hanging from a rope|Perhaps you could cut that as a distraction
+action var guard 1 when You should guard it before
+action var steal 1 when ^You should steal whatever|^You\'ve already observed your surroundings
+action var pace 1 when perhaps pace around to make some extra footprints
+action var track 1 when ^You should track where the .* came from|^You get the feeling someone|^You\'ve already listened to your surroundings
+action var observe 1 when ^You should watch or observe for clues 
+action var watch 1 when ^You should watch or observe for clues 
+action var listen 0 when ^You\'ve already listened
+action var listen 1 when ^Perhaps you should look for clues
+# action math scrip add $1 when You quickly pocket (\d+) Duskruin bloodscrip
+action math scrip add $1 when You pick up (\d+) Duskruin bloodscrip
+action math scrip add $1 when The prize giver shows you .* and (\d+) bloodscrip
+action math scrip add $1 when an arena winner's package containing (\d+) bloodscrip
+action math scrip add $1 when ^You search around and find (\d+) bloodscrip\!
+action var itemtostow $2;goto stowfootitem when ^You notice (.*) (\S+) at your feet\, and do not wish to leave it behind\.
+action math killcount add 1;echo *** Kill Count: %killcount when $charactername has vanquished
+
+OK:
+if (!$standing) then gosub STAND
+gosub stowing
+if ($invisible) then send khri stop silence
+pause 0.1
+if (toupper("%MULTIPLIER") = "ON") then 
+     {
+          echo **** USING MULTIPLIER 
+          pause 0.3
+          send get my multip
+          pause 0.7
+          send redeem my mult
+          pause 0.3
+     }
+# echo =======================
+# echo *** DRATHROK'S DUSKRUIN
+# echo *** CHOOSE YOUR PATH:
+# echo *** 
+# echo *** 1 - ARENA (Have Armor ON and Vars set!!)
+# echo *** 2 - LABYRINTH 
+# echo *** 3 - BANK HEIST
+# echo =======================
+# matchre
+# matchre
+# matchre
+# matchwait 20
+GOTO:
+if contains ("$roomobjs", "a festive portal") then gosub move go fest portal
+if matchre ("$roomname", "Duskruin, Recovery Area") then gosub move SW
+if matchre ("$roomname", "Duskruin, Victor Lounge") then gosub move SE
+if matchre ("$roomname", "Duskruin, Antechamber") then goto ANTECHAMBER
+if matchre ("$roomname", "Duskruin, Central Parade") then goto BEGIN
+if matchre ("$roomname", "Duskruin, Darkened Antechamber") then goto MAZE.PREP
+if matchre ("$roomname", "Duskruin, Underground Labyrinth") then goto MAZE
+if matchre ("$roomname", "Arena") then goto FIGHTING
+if matchre ("$roomname", "Duskruin, Outside the Bank") then goto FuckingStartThisShit
+if matchre ("$roomname", "Duskruin, Side Street") then goto FuckingStartThisShit
+if matchre ("$roomname", "Duskruin, Dark Alley") then goto FuckingStartThisShit
+if matchre ("$roomname", "Bank of Duskruin, Wine Cellar") then goto FIGHTING
+put #goto 2
+pause 5
+
+ANTECHAMBER:
+     put go ramp
+     pause 0.1
+BEGIN:
+     gosub move go ramp
+GetRag:
+	pause 0.1
+     gosub PREBUFF
+     pause 0.1
+	put get rag
+	wait
+	pause 0.1
+	put swap
+	pause 0.5
+	pause 0.2
+	pause 0.1
+FuckingStartThisShit:
+     pause 0.001
+     if matchre("$righthand|$lefthand", "dueling slip") then goto LetsFuckingGo
+     matchre noSlips ^What were|^I could
+     matchre LetsFuckingGo ^You get|^You are already
+     put get dueling slip
+     matchwait
+
+LetsFuckingGo:
+     pause 0.001
+     if matchre ("$roomname", "(Side Street|Dark Alley|Outside the Bank)") then goto HEIST_PREP
+     matchre LetsFuckingGo ^\.\.\.wait|^Sorry\,
+     matchre noSlips ^You need a dueling slip
+     matchre PREP ^You hold out your dueling slip|^What were|^I could
+     send go portcullis
+     matchwait 7
+     
+HEIST_PREP:
+     var joiner null
+     if matchre("$roomobjs", "(enforcer|battlemaster|brigand)") then var joiner $1
+     if ("%joiner" = "enforcer") then var watch 1
+     if ("%joiner" = "battlemaster") then var listen 1
+     if ("%joiner" = "brigand") then var observe 1
+     pause 0.1
+     if ("$guild" = "Thief") then gosub KHRI_CHECK
+     pause 0.2
+     pause 0.5
+     send join %joiner
+     pause 0.2
+     pause 0.2
+     gosub WIELD %MELEE.WEAPON
+     goto PREPPING
+PREP:
+     var scriptloop 1
+     if ("$righthandnoun" != "rag") then gosub stow right
+     if ("$lefthandnoun" != "rag") then gosub stow left
+     pause 0.3
+     echo =============
+     echo *** PREPPING WEAPONS 
+     echo =============
+	pause 0.2
+	pause 0.001
+	gosub stow slip
+	pause 0.5
+	gosub WIELD %MELEE.WEAPON
+     pause 0.1
+	put get my rag
+	pause 0.5
+	pause 0.2
+	#if ("$lefthandnoun" != "rag") then put swap
+	pause 0.1 
+	send rub %MELEE.WEAPON with my rag
+	pause 0.5
+     pause 0.1
+     gosub stow %MELEE.WEAPON
+     pause 0.1
+     gosub GET %THROWN.WEAPON
+	pause 0.3
+     send rub %THROWN.WEAPON with my rag
+     pause 0.5
+     put stow %THROWN.WEAPON
+     pause 0.5
+     pause 0.2
+     gosub GET %BLUNT.WEAPON
+	pause 0.3
+     send rub %BLUNT.WEAPON with my rag
+     pause 0.3
+     pause 0.5
+     put stow %BLUNT.WEAPON
+	put drop rag
+	pause 0.5
+     pause 0.2
+     if ("%LOB.ONLY" = "ON") then goto RANGED.PERM
+     pause 0.5
+     pause 0.2
+     gosub WIELD %MELEE.WEAPON
+PREPPING:
+     if (!$standing) then gosub STAND
+     if ("$guild" = "Necromancer") then gosub SUMMON
+     if !matchre("$righthand", "%MELEE.WEAPON") then gosub STOW right
+     if !matchre("$lefthand", "%MELEE.WEAPON") then gosub STOW left
+     if ("$lefthandnoun" != "rag") then gosub stow left
+     if ("%LOB.ONLY" = "ON") then goto RANGED.PERM
+     if matchre("$roomobjs","(%MELEE.WEAPON|%THROWN.WEAPON)") then gosub STOW $1
+     if matchre("$righthand", "%THROWN.WEAPON") then gosub STOW %THROWN.WEAPON
+     if matchre("$lefthand", "%THROWN.WEAPON") then gosub STOW %THROWN.WEAPON
+     if !matchre("$righthand", "%MELEE.WEAPON") then gosub WIELD %MELEE.WEAPON
+     if matchre("$guild","(Cleric|Moon Mage|Warrior Mage|Ranger|Necromancer|Paladin|Bard|Empath)") && ($mana > 50) then
+          {
+               pause 0.2
+               put prep %prep2 %MANA
+               var SNAP ON
+          }
+     send hide
+     pause
+     goto FIGHTING
+     
+PRE_FIGHTING:
+     if ("%joiner" = "enforcer") then var watch 1
+     if ("%joiner" = "battlemaster") then var listen 1
+     if ("%joiner" = "brigand") then var observe 1
+FIGHTING:
+     delay 0.0005
+     pause 0.1
+     var arena 1
+     var CURRENT FIGHTING
+     math loop add 1
+     math smiteloop add 1
+     math magicloop add 1
+     put #statusbar 1 *** DUSKRUIN SCRIPT ACTIVE! - Kills: %killcount | Bloodscrip this run: %RUN.SCRIP | Total Scrip: %TOTAL.SCRIP
+     if ("%LOB.ONLY" = "ON") then goto RANGED.PERM
+     if (!$standing) then gosub STAND
+     if ($health < 75) && ($bleeding = 1) then gosub BLEEDERCHECK
+     if (($monstercount=1) && matchre("$preparedspell", "Vivisection")) then put rel spell
+     pause 0.001
+     pause 0.001
+     if ("$lefthand" != "Empty") then gosub stow left
+     if (("$guild"="Warrior Mage") && ($SpellTimer.RingofSpears.active = 0)) then 
+          {
+               put prep ROS 16
+               pause 12
+               send cast creature
+               pause 0.5
+          }      
+     if (($monstercount>0) && matchre("$preparedspell", "Petrifying Visions")) then put cast
+     if (!matchre("$preparedspell", "None|Universal Solvent|Quicken the Earth|Petrifying Visions") && ($monstercount=1)) then put rel spell
+     if (("$charactername" = "Shroom") && ($concentration < 30)) then send touch my grey stone
+     if matchre("$roomobjs","(%MELEE.WEAPON|%THROWN.WEAPON|%BLUNT.WEAPON)") then gosub STOW $1
+     if (matchre("$roomobjs", "\b(eel|snow hawk)\b") && matchre("$righthand", "(?i)%MELEE.WEAPON")) then goto RANGED.SWITCH
+     if matchre("$righthand", "%BLUNT.WEAPON") && !matchre("$roomobjs", "(?i)(mage|(skeletal |veteran )archer|(necrotic |veteran )warrior)") && ("%BLUNT.WEAPON" != "NULL") then gosub STOW %BLUNT.WEAPON
+     pause 0.001
+     if ("$righthand" = "Empty") && !matchre("$roomobjs", "(?i)(mage|(skeletal |veteran )archer|(necrotic |veteran )warrior)") then gosub WIELD %MELEE.WEAPON
+     if matchre("$righthand", "%MELEE.WEAPON") && matchre("$roomobjs", "(?i)(mage|(skeletal |veteran )archer|(necrotic |veteran )warrior)") && ("%BLUNT.WEAPON" != "NULL") then gosub STOW %MELEE.WEAPON
+     pause 0.001
+     if matchre("$roomobjs", "(?i)(mage|(skeletal |veteran )archer|(necrotic |veteran )warrior)") && matchre("%MAGE.THROW", "(?i)ON") then goto RANGED.SWITCH
+     if ("$righthand" = "Empty") && matchre("$roomobjs", "(?i)(mage|(skeletal |veteran )archer|(necrotic |veteran )warrior)") && ("%BLUNT.WEAPON" != "NULL") then gosub WIELD %BLUNT.WEAPON
+     pause 0.001
+     pause 0.001
+     pause 0.001
+     if (("$preparedspell" != "None") && ($spelltime > 15)) then send cast
+     # if matchre ("$roomname", "(Bank of Duskruin|Side Street|Dark Alley|Outside the Bank)") then send listen
+     if ("$righthand" = "Empty") then send swap
+     if (%scriptloop > 2) then var watched 0
+     if (%scriptloop > 25) then gosub BUFFCHECK
+     if ("$guild" = "Thief") then gosub KHRI_CHECK
+     if ("%joiner" = "brigand") && !($hidden) then gosub HIDE
+     if ($monstercount > 0) && ("%TARGET" != "ON") then gosub GET_MONSTER_NAME
+     if ($monstercount > 0) || ("%joiner" != "null") then 
+          {
+               pause 0.001
+               if ($webbed) then waiteval !($webbed)
+               if ($stunned) then waiteval !($stunned)
+               echo
+               echo *** WATCHING FOR TRAP
+               echo
+               if matchre ("$roomname", "Arena") then
+                    {
+                         pause 0.1
+                         send watch
+                         pause 0.3
+                    }
+               if ("%joiner" = "enforcer") && (%watch = 1) then 
+                    {
+                         if (!$hidden) then gosub HIDE
+                         pause 0.1
+                         if (!$hidden) then gosub HIDE
+                         send watch
+                         var watch 0
+                    }
+               if ("%joiner" = "battlemaster") && (%listen = 1) then 
+                    {
+                         pause 0.1
+                         send listen
+                         var listen 0
+                    }
+               pause 0.001
+               if ("%joiner" = "brigand") && (%observe = 1) then
+                    {
+                         if (!$hidden) then gosub HIDE
+                         pause 0.1
+                         send observe
+                         var observe 0
+                    }
+               
+               pause 0.1
+               if ("%joiner" != "null") && ($monstercount > 0) then gosub ITEM_CHECK
+               if matchre ("$roomname", "Arena") then 
+                    {
+                         pause 0.1
+                         put %verb
+                         pause 0.1
+                    }
+               pause 0.01
+          }
+     if ("%joiner" != "null") then gosub ITEM_CHECK
+     if (("$preparedspell" != "None") && ($spelltime > 15)) then send cast
+     if (matchre("$guild","(Cleric|Moon Mage|Warrior Mage|Ranger|Necromancer|Paladin|Bard|Empath)") && ($mana > 30) && ("$preparedspell" = "None") && ($monstercount > 0) && !matchre("%Cast.Magic", (?i)"OFF")) then
+          {
+               pause 0.1
+               if (%magicloop = 1) then put targ %prep %MANA
+               if (%magicloop = 2) && ("%prep2" != "null") then
+                    {
+                         put targ %prep2 %MANA
+                    }
+               else if (%magicloop = 2) && ("%prep2" = "null") then put targ %prep2 %MANA
+               if (%magicloop = 3) && ("%prep3" != "null") then put targ %prep3 %MANA
+               if (%magicloop = 3) && ("%prep3" = "null") then put targ %prep %MANA
+               if (%magicloop >= 3) then var magicloop 0
+               pause 0.2
+               pause 0.2
+               pause 0.1
+               if ((%magicloop = 1) && ("$preparedspell" = "None")) then put prep %prep %MANA
+               if ((%magicloop = 2) && ("$preparedspell" = "None") && ("%prep2" != "null")) then put prep %prep2 %MANA
+               if ((%magicloop = 3) && ("$preparedspell" = "None") && ("%prep3" != "null")) then put prep %prep3 %MANA
+               pause 0.3
+               if ("$preparedspell" = "None") then put prep %prep %MANA
+               pause 0.4
+               if ("$preparedspell" != "None") then put target
+               if ("$preparedspell"="Blood Burst") then 
+                    {
+                         put perform cut
+                         pause 0.5
+                    }
+               if (!$standing) then gosub STAND
+               if ("$preparedspell"="Universal Solvent") && ($spelltime>14)) then put cast
+               if ((($monstercount>0) || ("$roomplayers"!="")) then 
+               {
+                    if ((("$preparedspell"="Vivisection") && ($spelltime>4)) || (("$preparedspell"="Siphon Vitality") && ($spelltime>4))) then put cast
+               }
+          }
+     if (!$standing) then gosub STAND
+     var ATTACK ATTACK
+     if ("%joiner" != "null") then gosub ITEM_CHECK
+     if ($monstercount > 0) && ("%TARGET" != "ON") then gosub GET_MONSTER_NAME
+     if !matchre("$roomobjs", "clay mage") && ($monstercount > 0) && ("$guild" = "Thief") then gosub BACKSTABING
+	if !matchre("$roomobjs", "(?i)(mage|(skeletal |veteran )archer|(necrotic |veteran )warrior)") && ($monstercount > 0) && ("%BLUNT.WEAPON" != "NULL") && ("$guild" != "Thief") then gosub %ATTACK
+     #if !matchre("$roomobjs", "(?i)(mage|(skeletal |veteran )archer|(necrotic |veteran )warrior)") && ($monstercount > 0) && ("$guild" != "Thief") then gosub %ATTACK
+     if matchre("$roomobjs", "(?i)(mage|(skeletal |veteran )archer|(necrotic |veteran )warrior)") then gosub PUT punch
+     if matchre("$roomobjs", "(?i)(mage|(skeletal |veteran )archer|(necrotic |veteran )warrior)") && ("%BLUNT.WEAPON" != "NULL") then gosub %ATTACK
+     if matchre("$roomobjs", "(?i)(mage|(skeletal |veteran )archer|(necrotic |veteran )warrior)") && ("%BLUNT.WEAPON" != "NULL") then gosub %ATTACK
+     if matchre ("$roomobjs" , "(.*) ((which|that) appears dead|\(dead\))") then goto CHECKDEAD
+     if (!$standing) then gosub STAND
+     if ($monstercount > 0) || ("%joiner" != "null") then 
+          {
+               echo
+               echo *** WATCHING FOR TRAP
+               echo
+               pause 0.001
+               if ($webbed) then waiteval !($webbed)
+               if ($stunned) then waiteval !($stunned)
+               pause 0.001
+               pause 0.1
+               if ("%joiner" = "enforcer") && (%watch = 1) then 
+                    {
+                         if (!$hidden) then gosub HIDE
+                         send watch
+                         var watch 0
+                    }
+               if ("%joiner" = "battlemaster") && (%listen = 1) then 
+                    {
+                         send listen
+                         var listen 0
+                    }
+               pause 0.001
+               if ("%joiner" = "brigand") && (%observe = 1) then
+                    {
+                         if (!$hidden) then gosub HIDE
+                         send observe
+                         var observe 0
+                    }
+               if matchre ("$roomname", "Arena") then send watch
+               pause 0.3
+               pause 0.2
+               if ("%joiner" != "null") && ($monstercount > 0) then gosub ITEM_CHECK
+               if matchre ("$roomname", "Arena") then put %verb
+               pause 0.2
+               pause 0.1
+          }
+     var ATTACK CHOP
+     if ("%joiner" != "null") && ($monstercount > 0) then gosub ITEM_CHECK
+     if (("$preparedspell" != "None") && ($spelltime > 7)) then send cast
+     if (matchre("$guild","(Cleric|Moon Mage|Warrior Mage|Ranger|Necromancer|Paladin|Bard|Empath)") && ($mana > 30) && ("$preparedspell" = "None") && ($monstercount > 0) && !matchre("%Cast.Magic", (?i)"OFF")) then
+          {
+               pause 0.1
+               if (%magicloop = 1) then put targ %prep %MANA
+               if (%magicloop = 2) && ("%prep2" != "null") then
+                    {
+                         put targ %prep2 %MANA
+                    }
+               else if (%magicloop = 2) && ("%prep2" = "null") then put targ %prep2 %MANA
+               if (%magicloop = 3) && ("%prep3" != "null") then put targ %prep3 %MANA
+               if (%magicloop = 3) && ("%prep3" = "null") then put targ %prep %MANA
+               if (%magicloop >= 3) then var magicloop 0
+               pause 0.2
+               pause 0.2
+               pause 0.1
+               if ((%magicloop = 1) && ("$preparedspell" = "None")) then put prep %prep %MANA
+               if ((%magicloop = 2) && ("$preparedspell" = "None") && ("%prep2" != "null")) then put prep %prep2 %MANA
+               if ((%magicloop = 3) && ("$preparedspell" = "None") && ("%prep3" != "null")) then put prep %prep3 %MANA
+               pause 0.3
+               if ("$preparedspell" = "None") then put prep %prep %MANA
+               pause 0.3
+               if ("$preparedspell" != "None") then put target
+               if ("$preparedspell"="Blood Burst") then 
+                    {
+                         put perform cut
+                         pause 0.5
+                    }
+               if (!$standing) then gosub STAND
+               if ("$preparedspell"="Universal Solvent") && ($spelltime>15)) then put cast
+               if ((($monstercount>0) || ("$roomplayers"!="")) then 
+               {
+                    if ((("$preparedspell"="Vivisection") && ($spelltime>4)) || (("$preparedspell"="Siphon Vitality") && ($spelltime>4))) then put cast
+               }
+          }
+     if ("%joiner" != "null") then gosub ITEM_CHECK
+     if ($monstercount > 0) && ("%TARGET" != "ON") then gosub GET_MONSTER_NAME
+     if !matchre("$roomobjs", "clay mage") && ($monstercount > 0) && ("$guild" = "Thief") then gosub BACKSTABING
+	if !matchre("$roomobjs", "(?i)(mage|(skeletal |veteran )archer|(necrotic |veteran )warrior)") && ($monstercount > 0) && ("%BLUNT.WEAPON" != "NULL") && ("$guild" != "Thief") then gosub %ATTACK
+     if ("%joiner" != "null") then gosub ITEM_CHECK
+     if matchre("$roomobjs", "(?i)(mage|(skeletal |veteran )archer|(necrotic |veteran )warrior)") && ("%BLUNT.WEAPON" = "NULL") then gosub PUT elbow
+     if matchre("$roomobjs", "(?i)(mage|(skeletal |veteran )archer|(necrotic |veteran )warrior)") && ("%BLUNT.WEAPON" != "NULL") then gosub %ATTACK
+     if ("%joiner" != "null") then gosub ITEM_CHECK
+     if matchre("$roomobjs", "(?i)(mage|(skeletal |veteran )archer|(necrotic |veteran )warrior)") && ("$guild" != "Thief") then goto CASTBITCH
+     if matchre ("$roomobjs" , "(.*) ((which|that) appears dead|\(dead\))") then goto CHECKDEAD
+     if (!$standing) then gosub STAND
+     pause 0.1
+     var ATTACK DRAW
+     if ($monstercount > 0) && ("%TARGET" != "ON") then gosub GET_MONSTER_NAME
+     if !matchre("$roomobjs", "clay mage") && ($monstercount > 0) && ("$guild" = "Thief") then gosub BACKSTABING
+	if !matchre("$roomobjs", "(?i)(mage|(skeletal |veteran )archer|(necrotic |veteran )warrior)") && ($monstercount > 0) && ("%BLUNT.WEAPON" != "NULL") && ("$guild" != "Thief") then gosub %ATTACK
+     if !matchre("$roomobjs", "(?i)(mage|(skeletal |veteran )archer|(necrotic |veteran )warrior)") && ($monstercount > 0) && ("$guild" != "Thief") then gosub %ATTACK
+     if matchre("$roomobjs", "(?i)(mage|(skeletal |veteran )archer|(necrotic |veteran )warrior)") && ("%BLUNT.WEAPON" = "NULL") then gosub PUT kick
+     if matchre("$roomobjs", "(?i)(mage|(skeletal |veteran )archer|(necrotic |veteran )warrior)") && ("%BLUNT.WEAPON" != "NULL") then gosub %ATTACK
+     if ("$guild" = "Paladin") && (%smiteloop > 1) then 
+          {
+               var smiteloop 0
+               send smite
+          }
+     if ("%joiner" != "null") then gosub ITEM_CHECK
+     pause 0.001
+     if matchre ("$roomobjs" , "(.*) ((which|that) appears dead|\(dead\))") then goto CHECKDEAD
+     if (!$standing) then gosub STAND
+CASTBITCH:
+     if matchre("$guild","(Cleric|Moon Mage|Warrior Mage|Ranger|Necromancer|Paladin|Bard|Empath)") && ($monstercount > 0) && !matchre("%Cast.Magic", (?i)"OFF") then 
+          {
+		       if ("%SNAP" = "ON") then
+				{
+                         if ($spelltime < 4) then
+                              {
+                                   send attack
+                                   pause
+                                   pause 0.2
+                                   send attack
+                                   pause
+                                   pause 0.2
+                                   send attack
+                                   pause
+                                   pause 0.2
+                              }
+                         if (matchre("$preparedspell", "Blufmor Garaen") || matchre("%CurrentSpell", "\b(?i)BG\b")) then
+                              {
+                                   send slap
+                                   pause 0.5
+                              }
+                         if (matchre("$preparedspell", "Dragon's Breath") || matchre("%CurrentSpell", "\b(?i)DB\b")) then
+                              {
+                                   send exhale
+                                   pause 0.5
+                              }
+                         else send -cast
+					pause 0.5
+		       if ("%SNAP" != "ON") then
+				{
+                         if (matchre("$preparedspell", "Blufmor Garaen") || matchre("%CurrentSpell", "\b(?i)BG\b")) then
+                              {
+                                   send slap
+                                   pause 0.5
+                              }
+                         if (matchre("$preparedspell", "Dragon's Breath") || matchre("%CurrentSpell", "\b(?i)DB\b")) then
+                              {
+                                   send exhale
+                                   pause 0.5
+                              }
+                         else send -cast
+					pause 0.5
+				    var SNAP OFF
+			    }
+		    var SNAP OFF
+                   }
+          }
+     if matchre ("$roomobjs" , "(.*) ((which|that) appears dead|\(dead\))") then goto CHECKDEAD
+     goto FIGHTING
+    
+RANGED.PERM:
+     pause 0.001
+     echo
+     echo **** STICKING TO PERMANENT RANGED ATTACKS
+     echo
+RANGED.SWITCH:
+     var RANGED ON
+     echo
+     echo  *** SWITCHING TO RANGED ATTACK!
+     echo
+     if ("$righthand" != "Empty") then gosub stow right
+     if ("$lefthand" != "Empty") then gosub stow left    
+     pause 0.3
+     if !matchre("$righthand", "%THROWN.WEAPON") then gosub STOW right
+     if !matchre("$lefthand", "(%THROWN.WEAPON|Empty)") then gosub STOW left
+     pause 0.1
+     send get my %THROWN.WEAPON
+     pause 0.2
+RANGED.ATTACK:
+     pause 0.1
+     var CURRENT RANGED.ATTACK
+	var RANGED ON
+     action goto RANGED.CHECK when A pair of surly attendants lumbers in and drags
+     if (!$standing) then gosub STAND
+     if ("$guild" = "Thief") then gosub KHRI_CHECK
+     if ($monstercount > 0) && (%watched = 0)  || ("%joiner" != "null") then 
+          {
+               echo
+               echo *** WATCHING FOR TRAP
+               echo
+               pause 0.001
+               if ($webbed) then waiteval !($webbed)
+               if ($stunned) then waiteval !($stunned)
+               pause 0.001
+               if ("%joiner" = "enforcer") && (%watch = 1) then 
+                    {
+                         if (!$hidden) then gosub HIDE
+                         send watch
+                         var watch 0
+                    }
+               if ("%joiner" = "battlemaster") && (%listen = 1) then 
+                    {
+                         send listen
+                         var listen 0
+                    }
+               pause 0.001
+               if ("%joiner" = "brigand") && (%observe = 1) then
+                    {
+                         if (!$hidden) then gosub HIDE
+                         send observe
+                         var observe 0
+                    }
+               if matchre ("$roomname", "Arena") then 
+                    {
+                         send watch
+                         var watched 1
+                    }
+               pause 0.3
+               if ("%joiner" != "null") && ($monstercount = 0) then gosub ITEM_CHECK
+               if matchre ("$roomname", "Arena") then put %verb
+               pause 0.2
+          }   
+     if (matchre("$guild","(Cleric|Moon Mage|Warrior Mage|Ranger|Necromancer|Paladin|Bard|Empath)") && ($mana > 30) && ("$preparedspell" = "None") && ($monstercount > 0) && !matchre("%Cast.Magic", (?i)"OFF")) then
+          {
+               pause 0.1
+               if (%magicloop = 1) then put targ %prep %MANA
+               if (%magicloop = 2) && ("%prep2" != "null") then
+                    {
+                         put targ %prep2 %MANA
+                    }
+               else if (%magicloop = 2) && ("%prep2" = "null") then put targ %prep2 %MANA
+               if (%magicloop = 3) && ("%prep3" != "null") then put targ %prep3 %MANA
+               if (%magicloop = 3) && ("%prep3" = "null") then put targ %prep %MANA
+               if (%magicloop >= 3) then var magicloop 0
+               pause 0.2
+               pause 0.2
+               pause 0.1
+               if ((%magicloop = 1) && ("$preparedspell" = "None")) then put prep %prep %MANA
+               if ((%magicloop = 2) && ("$preparedspell" = "None") && ("%prep2" != "null")) then put prep %prep2 %MANA
+               if ((%magicloop = 3) && ("$preparedspell" = "None") && ("%prep3" != "null")) then put prep %prep3 %MANA
+               pause 0.3
+               if ("$preparedspell" = "None") then put prep %prep %MANA
+               pause 0.4
+               if ("$preparedspell" != "None") then put target
+               pause 0.1
+               if ("$preparedspell"="Blood Burst") then 
+                    {
+                         put perform cut
+                         pause 0.5
+                    }
+               if (!$standing) then gosub STAND
+               if ("$preparedspell"="Universal Solvent") && ($spelltime>12)) then put cast
+               if ((($monstercount>0) || ("$roomplayers"!="")) then 
+               {
+                    if ((("$preparedspell"="Vivisection") && ($spelltime>4)) || (("$preparedspell"="Siphon Vitality") && ($spelltime>4))) then put cast
+               }
+          }
+     if !matchre("$righthand", "%THROWN.WEAPON") then gosub STOW right
+     if !matchre("$lefthand", "%THROWN.WEAPON") then gosub STOW left
+     if ("$righthand" = "Empty") then gosub GET %THROWN.WEAPON
+     if ("%joiner" != "null") then gosub ITEM_CHECK
+     pause 0.1
+     if ("$righthand" = "Empty") then send swap
+     if (!$standing) then gosub STAND
+     if ($monstercount > 0) && ("%TARGET" != "ON") then gosub GET_MONSTER_NAME
+     gosub PUT %throwtype chest
+     gosub GET %THROWN.WEAPON
+     if ("%joiner" != "null") then gosub ITEM_CHECK
+     pause 0.01
+     if (("$preparedspell" != "None") && ($spelltime > 14)) then send cast
+     pause 0.1
+     if matchre("$guild","(Cleric|Moon Mage|Warrior Mage|Ranger|Necromancer|Paladin|Bard|Empath)") && ($monstercount > 0) && ($mana > 30) && ("$preparedspell" = "None") && !matchre("%Cast.Magic", (?i)"OFF") then
+          {
+               pause 0.1
+               if (%magicloop = 1) then put targ %prep %MANA
+               if (%magicloop = 2) && ("%prep2" != "null") then 
+                    {
+                         put targ %prep2 %MANA
+                    }
+               if (%magicloop = 2) && ("%prep2" = "null") then put targ %prep2 %MANA
+               if (%magicloop = 3) && ("%prep3" != "null") then put targ %prep3 %MANA
+               if (%magicloop = 3) && ("%prep3" = "null") then put targ %prep %MANA
+               pause 0.2
+               if ((%magicloop = 1) && ("$preparedspell" = "None")) then put prep %prep %MANA
+               if ((%magicloop = 2) && ("$preparedspell" = "None") && ("%prep2" != "null")) then put prep %prep2 %MANA
+               if ((%magicloop = 3) && ("$preparedspell" = "None") && ("%prep3" != "null")) then put prep %prep3 %MANA
+               if (%magicloop >= 3) then var magicloop 0
+               pause 0.4
+               if ("$preparedspell" != "None") then put target
+               pause 0.1
+          }
+     if ("%joiner" != "null") then gosub ITEM_CHECK
+     if matchre("$roomobjs", "clay mage") then gosub PUT punch
+     if ($monstercount > 0) && ("%TARGET" != "ON") then gosub GET_MONSTER_NAME
+     if matchre ("$roomobjs" , "(.*) ((which|that) appears dead|\(dead\))") then goto CHECKDEAD
+     pause 0.2
+     if (!$standing) then gosub STAND
+     gosub PUT %throwtype chest
+     gosub GET %THROWN.WEAPON
+     pause 0.01
+     if ("%joiner" != "null") then gosub ITEM_CHECK
+     if matchre("$roomobjs", "clay mage") then gosub PUT elbow
+     if ($monstercount > 0) && ("%TARGET" != "ON") then gosub GET_MONSTER_NAME
+     if matchre ("$roomobjs" , "(.*) ((which|that) appears dead|\(dead\))") then goto CHECKDEAD
+     pause 0.2
+     if (!$standing) then gosub STAND
+     gosub PUT %throwtype chest
+     gosub GET %THROWN.WEAPON
+     pause 0.01
+     if ("%joiner" != "null") then gosub ITEM_CHECK
+     if matchre("$roomobjs", "clay mage") then gosub PUT kick
+     if ($monstercount > 0) && ("%TARGET" != "ON") then gosub GET_MONSTER_NAME
+     if matchre ("$roomobjs" , "(.*) ((which|that) appears dead|\(dead\))") then goto CHECKDEAD
+     pause 0.1
+     if (!$standing) then gosub STAND
+     if matchre("$guild","(Cleric|Moon Mage|Warrior Mage|Ranger|Necromancer|Paladin|Bard|Empath)") && ($monstercount > 0) && !matchre("%Cast.Magic", (?i)"OFF") then 
+          {
+		       if ("%SNAP" = "ON") then
+				{
+                         if (matchre("$preparedspell", "Blufmor Garaen") || matchre("%CurrentSpell", "\b(?i)BG\b")) then
+                              {
+                                   send slap
+                                   pause 0.5
+                              }
+                         if (matchre("$preparedspell", "Dragon's Breath") || matchre("%CurrentSpell", "\b(?i)DB\b")) then
+                              {
+                                   send exhale
+                                   pause 0.5
+                              }
+                         else send -cast
+					pause 0.5
+			    }
+		       if ("%SNAP" != "ON") then
+				{
+                         if (matchre("$preparedspell", "Blufmor Garaen") || matchre("%CurrentSpell", "\b(?i)BG\b")) then
+                              {
+                                   send slap
+                                   pause 0.5
+                              }
+                         if (matchre("$preparedspell", "Dragon's Breath") || matchre("%CurrentSpell", "\b(?i)DB\b")) then
+                              {
+                                   send exhale
+                                   pause 0.5
+                              }
+                         else send -cast
+                         pause 0.5
+				     var SNAP OFF
+			    }
+		    var SNAP OFF
+          }
+     if ("%joiner" != "null") then gosub ITEM_CHECK
+     if matchre ("$roomobjs" , "(.*) ((which|that) appears dead|\(dead\))") then goto CHECKDEAD
+     goto RANGED.ATTACK
+	 
+RANGED.CHECK:
+    goto CHECKDEAD
+###############################################################################
+CHECKDEAD:
+     delay 0.0005
+     var TARGET OFF
+     var watched 0
+     if ("%joiner" = "enforcer") then var observe 1
+     if ("%joiner" = "battlemaster") then
+          {
+               var listen 1
+               var track 1
+          }
+     if ("%joiner" = "brigand") then
+          {
+               var watch 1
+               var steal 1
+          }
+     if toupper("%LOB.ONLY" != "ON") then var CURRENT FIGHTING
+     if toupper("%LOB.ONLY" = "ON") then var CURRENT RANGED.ATTACK
+     action goto DEAD.COMPLETE when Send in the next challenge\!
+     # debuglevel 10
+     if (("$preparedspell" != "None") && ($spelltime > 10)) then 
+          {
+           if (matchre("$preparedspell", "Blufmor Garaen") || matchre("%CurrentSpell", "\b(?i)BG\b")) then
+                {
+                     send slap
+                     pause 0.5
+                }
+           if (matchre("$preparedspell", "Dragon's Breath") || matchre("%CurrentSpell", "\b(?i)DB\b")) then
+                {
+                     send exhale
+                     pause 0.5
+                }
+           else send -cast
+           pause 0.5
+          }
+     if !matchre("$roomobjs", "(%critters) ((?:which|that) appears dead|\(dead\))") then
+          {
+               if ("%LOOT.HEIST" = "ON") then send loot
+               pause 0.2
+               send look
+               pause 0.2
+               if ("%joiner" != "null") && ("%LOOT.HEIST" = "ON") then gosub LOOTING
+               pause 0.01
+          }
+     if ("%joiner" = "brigand") && ($monstercount = 0) then 
+          {
+               if (!$hidden) then gosub HIDE
+               send steal
+               var observe 1
+               pause 0.4
+          }
+     if ("%joiner" = "battlemaster") && ($monstercount = 0) then 
+          {
+               send track
+               var listen 1
+          }
+     if ("%joiner" = "enforcer") && ($monstercount = 0) then 
+          {
+               if (!$hidden) then gosub HIDE
+               send sneak e
+          }
+     pause 0.1
+     pause 0.1
+	if matchre("$roomobjs", "%MELEE.WEAPON") then gosub STOW %MELEE.WEAPON
+     if matchre("$roomobjs", "%THROWN.WEAPON") then gosub STOW %THROWN.WEAPON
+     if matchre("$guild", "(Cleric|Moon Mage|Warrior Mage|Ranger|Necromancer|Paladin|Trader|Empath|Bard)") then 
+          {
+               if ("$preparedspell" = "None") then send prep %prep2 %MANA
+               var SNAP ON
+          }
+     if ("%RANGED" = "ON") && ("%LOB.ONLY" != "ON") then 
+          {
+               var RANGED OFF
+               gosub GET %THROWN.WEAPON
+               pause 0.2
+               pause 0.1
+               pause 0.1
+               if ("$righthand" != "Empty") then gosub stow right
+               if ("$lefthand" != "Empty") then gosub stow left
+               pause 0.5
+               gosub GET %MELEE.WEAPON
+               pause 0.1
+			action remove A pair of surly attendants lumbers in and drags
+			var TARGET OFF
+               var CURRENT FIGHTING
+          }
+	 if ("$guild" = "Thief") && ("%LOB.ONLY" != "ON") then gosub hide
+      pause 0.1
+      pause 0.001
+	 if ("$guild" = "Thief") then gosub KHRI_CHECK
+     matchre DEAD.COMPLETE Send in the next challenge
+     matchwait 1
+DEAD.COMPLETE:
+     goto %CURRENT
+     
+LOOTING:
+     var lootloop 0
+     var gemlist topaz| star-stone|amber(?! andalusite)| agate| alexandrite| amethyst| aquamarine| bead| beryl| bloodgem| bloodstone| carnelian| chakrel| chalcedony| chrysoberyl| chrysoprase| citrine| coral| crystal| diamond| diopside| egg| eggcase| emerald| garnet| gem| glowstone| glossy malachite| goldstone|(chunk of|some|tiny amber(?! andalusite)|piece of)\s(silver|gold|platinum|quartz)-laced\sgranite| hematite| iolite| ivory| ivory tooth| jade| jasper| kunzite| lapis lazuli| malachite stone| minerals| moonstone| morganite| onyx| opal| pearl| pebble| peridot| ruby| sapphire| spinel| sunstone| talon| tanzanite| topaz| tourmaline| tsavorite| thealstone| turquoise(?! andalusite)| zircon| andalusite
+     var badGems (tukai|jadeite|waermodi) (stone)
+     LOOTING_1:
+     var Loot NULL
+     math lootloop add 1
+     if ("$lefthand" != "Empty") && ("$righthand" != "Empty") then gosub STOW $lefthandnoun
+     if matchre("$roomobjs", "\bcoins?\b") then 
+          {
+               send get coin
+               send get coin
+               pause 0.3
+               pause 0.1
+          }
+     if matchre("$roomobjs", "\b(%gemlist)\b(,|\.| and)")) then
+          {
+               send stow gem
+               pause 0.1
+               send stow gem
+               pause 0.3
+               pause 0.1
+          }
+     if matchre("$roomobjs", "\b(skippet|coffer|trunk|chest|strongbox|crate|box|casket|caddy)\b") then gosub GET_BOXES
+     ## PASSES / RARE STUFF
+     if matchre("$roomobjs", "\bbloodscrip?\b") then var Loot bloodscrip
+     if matchre("$roomobjs", "mallet") then var Loot mallet
+     if matchre("$roomobjs", "battle axe") then var Loot axe
+     if matchre("$roomobjs", "hanger") then var Loot hanger
+     if matchre("$roomobjs", "greathammer") then var Loot greathammer
+     if matchre("$roomobjs", "throwing club") then var Loot club
+     if matchre("$roomobjs", "maul") then var Loot maul
+     if matchre("$roomobjs", "nightstick") then var Loot nightstick
+     if matchre("$roomobjs", "flamberge") then var Loot flamberge
+     if matchre("$roomobjs", "stonebow") then var Loot stonebow
+     
+     if matchre("$roomobjs", "hauberk") then var Loot hauberk
+     if matchre("$roomobjs", "greaves") then var Loot greaves
+     if matchre("$roomobjs", "plate helm") then var Loot helm
+     
+     if matchre("$roomobjs", "leather belt") then var Loot belt
+     if matchre("$roomobjs", "costume") then var Loot costume
+     if matchre("$roomobjs", "night lily") then var Loot lily
+     if matchre("$roomobjs", "backpack") then var Loot backpack
+     if matchre("$roomobjs", "arm pouch") then var Loot arm pouch
+     if matchre("$roomobjs", "mortar") then var Loot mortar
+     if matchre("$roomobjs", "pestle") then var Loot pestle
+     if matchre("$roomobjs", "shaper") then var Loot shaper
+     if matchre("$roomobjs", "scraper") then var Loot scraper
+     if matchre("$roomobjs", "pickaxe") then var Loot pickaxe
+     if matchre("$roomobjs", "bowl") then var Loot bowl
+     if matchre("$roomobjs", "tongs") then var Loot tongs
+     if matchre("$roomobjs", "stirring rod") then var Loot rod
+     if matchre("$roomobjs", "cauldron") then var Loot cauldron
+     
+     if matchre("$roomobjs", "penguin") then var Loot penguin
+     if matchre("$roomobjs", "textbook") then var Loot textbook
+     if matchre("$roomobjs", "instructions") then var Loot instructions
+     if matchre("$roomobjs", "tome") then var Loot tome
+     if matchre("$roomobjs", "voucher") then var Loot voucher
+     if matchre("$roomobjs", "crystal ball") then var Loot ball
+     if matchre("$roomobjs", "pinata") then var Loot pinata
+     if matchre("$roomobjs", "\bband\b") then var Loot band
+     if matchre("$roomobjs", "necklace") then var Loot necklace
+     if matchre("$roomobjs", "scarf") then var Loot scarf
+     
+     if matchre("$roomobjs", "\bpass?\b") then var Loot pass
+     if matchre("$roomobjs", "\bfeatherstone\b") then var Loot featherstone
+     if matchre("$roomobjs", "iron fragment") then var Loot fragment
+     if matchre("$roomobjs", "worn and tattered map") then var Loot map
+     if matchre("$roomobjs", "khor'vela branch") then var Loot branch
+     if matchre("$roomobjs", "khor'vela chip") then var Loot chip
+     if matchre("$roomobjs", "khor'vela limb") then var Loot limb
+     if matchre("$roomobjs", "khor'vela shaving") then var Loot shaving
+     if matchre("$roomobjs", "khor'vela sprig") then var Loot sprig
+     if matchre("$roomobjs", "khor'vela stick") then var Loot stick
+     if matchre("$roomobjs", "khor'vela switch") then var Loot switch
+     if matchre("$roomobjs", "khor'vela twig") then var Loot twig
+     if matchre("$roomobjs", "\bbar(\,|\.|\sand)") then var Loot BAR
+     if matchre("$roomobjs", "\btear(\,|\.|\sand)") then var Loot TEAR
+     if matchre("$roomobjs", "\ba.*\nugget(\,|\.|\sand)") then var Loot NUGGET
+     # if matchre("$roomobjs", "\b%RareMetalKeepList\sfragment(\,|\.|\sand)") then var Loot FRAGMENT
+     if matchre("$roomobjs", "\broll\b") then var Loot roll
+     if matchre("$roomobjs", "\btablet\b") then var Loot tablet
+     if matchre("$roomobjs", "\bscroll\b") then var Loot scroll
+     if matchre("$roomobjs", "\bvellum\b") then var Loot vellum
+     if matchre("$roomobjs", "\bostracon\b") then var Loot ostracon
+     if matchre("$roomobjs", "\bparchment\b") then var Loot parchment
+     if matchre("$roomobjs", "\bseishaka leaf\b") then var Loot seishaka leaf
+     if matchre("$roomobjs", "\bhhr'lav'geluhh bark\b") then var Loot bark
+
+     if matchre("$roomobjs", "\ba.*\scard(\,|\.|\sand)") then var Loot CARD
+     if matchre("$roomobjs", "\ba.*\sdira(\,|\.|\sand)") then var Loot DIRA
+     if matchre("$roomobjs", "\ba.*\snut(\,|\.|\sand)") then var Loot NUT
+     if matchre("$roomobjs", "\ba.*\sbolt(\,|\.|\sand)") then var Loot BOLT
+     if matchre("$roomobjs", "\ba.*\sgear(\,|\.|\sand)") then var Loot GEAR
+     if matchre("$roomobjs", "\ba.*\sflarmencrank(\,|\.|\sand)") then var Loot FLARMENCRANK
+     if matchre("$roomobjs", "\ba.*\sspangleflange(\,|\.|\sand)") then var Loot SPANGLEFLANGE
+     if matchre("$roomobjs", "\ba.*\sglarmencoupler(\,|\.|\sand)") then var Loot GLARMENCOUPLER
+     if matchre("$roomobjs", "\ba.*\srackensprocket(\,|\.|\sand)") then var Loot RACKENSPROCKET
+     if ("%Loot" = "NULL") then
+          {
+               pause 0.2
+               return
+          }
+     if (%lootloop > 6) then
+          {
+               pause 0.2
+               return
+          }
+     goto GET_LOOT
+##### GET & DROP LOOT #####
+GET_LOOT:
+     if ("$lefthand" != "Empty") && ("$righthand" != "Empty") then gosub STOW $lefthandnoun
+     send get %Loot
+     pause 0.4
+     pause 0.1
+     if matchre("$righthand", "%Loot") then put #echo >Log Yellow *** Heist Incidental Loot - $righthand
+     if matchre("$lefthand", "%Loot") then put #echo >Log Yellow *** Heist Incidental Loot - $lefthand
+     matchre GET_LOOT ^\.\.\.wait|^Sorry\,|^Please wait\.
+     matchre LOOTING ^You put your
+     matchre LOOTING ^What were you referring to\?
+     matchre LOOTING ^Stow what\?  Type 'STOW HELP' for details\.
+     matchre LOOTING ^Stow what\? 
+     matchre STOW_LOOT_2 ^There's no room
+     matchre STOW_LOOT_2 even after stuffing it 
+     matchre STOW_LOOT_2 no matter how you arrange it
+     matchre STOW_LOOT_2 ^That's too heavy to go in there
+     matchre STOW_LOOT_2 ^There isn't any more room in the
+     matchre STOW_LOOT_2 ^You're carrying far too many items already\.
+     send stow %Loot
+     matchwait 7
+     goto LOOTING
+GET_BOXES:
+     var BOX $0
+     math totalBoxes add 1
+     pause 0.1
+     matchre GET_BOXES ^\.\.\.wait|^Sorry\,|^Please wait\.
+     matchre RETURN ^You put your
+     matchre RETURN ^What were you referring to\?
+     matchre RETURN ^Stow what\?  Type 'STOW HELP' for details\.
+     matchre DROP_BOX even after stuffing it
+     matchre DROP_BOX ^That's too heavy to go in there\!
+     matchre DROP_BOX ^There isn't any more room in .* for that\.
+     matchre DROP_BOX ^You just can't get .* to fit in .*, no matter how you arrange it\.
+     put stow %BOX
+     matchwait 15
+DROP_BOX:
+     if matchre("$lefthand $righthand", "\b(skippet|coffer|trunk|chest|strongbox|crate|box|casket|caddy)\b") then PUT drop my $1
+BOXES_DONE:
+     return
+     
+STOW_LOOT_2:
+     pause 0.1
+     matchre STOW_LOOT_2 ^\.\.\.wait|^Sorry\,|^Please wait\.
+     matchre LOOTING ^You put your
+     matchre LOOTING ^What were you referring to\?
+     matchre LOOTING ^Stow what\?  Type 'STOW HELP' for details\.
+     matchre LOOTING ^Stow what\? 
+     matchre STOW_LOOT_3 ^There's no room     
+     matchre STOW_LOOT_3 even after stuffing it
+     matchre STOW_LOOT_3 no matter how you arrange it
+     matchre STOW_LOOT_3 ^That's too heavy to go in there
+     matchre STOW_LOOT_3 ^There isn't any more room in the
+     matchre STOW_LOOT_3 ^You're carrying far too many items already\.
+     send put %Loot in my %SECOND.BAG
+     matchwait 7
+STOW_LOOT_3:
+     pause 0.1
+     matchre STOW_LOOT_3 ^\.\.\.wait|^Sorry\,|^Please wait\.
+     matchre LOOTING ^You put your
+     matchre LOOTING ^What were you referring to\?
+     matchre LOOTING ^Stow what\?  Type 'STOW HELP' for details\.
+     matchre DROP_LOOT even after stuffing it
+     matchre LOOTING ^Stow what\?  
+     matchre DROP_LOOT ^There's no room
+     matchre DROP_LOOT no matter how you arrange it
+     matchre DROP_LOOT ^That's too heavy to go in there
+     matchre DROP_LOOT ^There isn't any more room in the
+     matchre DROP_LOOT ^You're carrying far too many items already\.
+     send put %Loot in my %LARGE.BAG
+     matchwait 7
+DROP_LOOT:
+     if ("$lefthand" != "Empty") then gosub PUT put $lefthandnoun in my $Container
+     if ("$righthand" != "Empty") then gosub PUT put $righthandnoun in my $Container
+     if ("$lefthand" != "Empty") then gosub PUT put $lefthandnoun in my $Container.Box
+     if ("$righthand" != "Empty") then gosub PUT put $righthandnoun in my $Container.Box
+     if ("$lefthand" != "Empty") then gosub PUT put $lefthandnoun in my $Container.Sheath
+     if ("$lefthand" != "Empty") then gosub PUT put $lefthandnoun in my $Container.Backup
+     if ("$righthand" != "Empty") then gosub PUT put $righthandnoun in my $Container.Backup
+##### LOOT DONE #####
+LOOT_DONE:
+     return
+     
+DONE.PREP:
+     pause
+     if ("$righthand" != "Empty") then gosub stow right
+     if ("$lefthand" != "Empty") then gosub stow left
+     if matchre("$roomobjs","(%MELEE.WEAPON|%THROWN.WEAPON)") then gosub STOW $1
+     if matchre("$roomobjs", "%MELEE.WEAPON") then gosub STOW %MELEE.WEAPON
+     if matchre("$roomobjs", "%THROWN.WEAPON") then gosub STOW %THROWN.WEAPON
+     gosub BLEEDERCHECK
+     gosub BUFFCHECK
+     if ("$preparedspell" != "None") then send release spell
+     pause 0.5
+     pause 0.1
+#######################################################################
+FINISHED: 
+     echo
+     echo  **** DUSKRUIN RUN COMPLETE!
+     echo
+     pause 5
+     pause 2
+     var scriptloop 0
+     if ($invisible = 1) then send khri stop silence vanish
+     pause 0.5
+     if ("$righthandnoun" != "package") && ("$righthandnoun" != "Empty") then gosub stow right
+     if ("$lefthandnoun" != "package") && ("$lefthandnoun" != "Empty") then gosub stow left
+	pause 0.5
+OPENP:
+     pause
+     matchre OPENP ^You don't seem to be able to move
+     matchre PACKAGE ^You open|^That is already
+     send open my package
+     matchwait 7
+PACKAGE:
+     pause 0.2
+     if ("$righthandnoun" != "package") && ("$righthandnoun" != "Empty") then gosub stow right
+     if ("$lefthandnoun" != "package") && ("$lefthandnoun" != "Empty") then gosub stow left
+     pause 0.4
+     pause 0.5
+     matchre PACKAGE_2 ^There is nothing in there|^I could not|^What were you
+     matchre PACKAGE ^\.\.\.wait|^Sorry\,|^Please wait\.
+     matchre COIN coin
+     matchre GETIT (\S+)(?: with a.*)?(\.)
+     matchre OPENP That is closed
+     send look in my package
+     matchwait 10
+PACKAGE_2:
+     pause 0.2
+     if ("$righthandnoun" != "package") && ("$righthandnoun" != "Empty") then gosub stow right
+     if ("$lefthandnoun" != "package") && ("$lefthandnoun" != "Empty") then gosub stow left
+     pause 0.4
+     pause 0.5
+     matchre PACKAGE_3 ^There is nothing in there|^I could not|^What were you
+     matchre PACKAGE ^\.\.\.wait|^Sorry\,|^Please wait\.
+     matchre COIN coin
+     matchre GETIT (\S+)(?: with a.*)?(\.)
+     matchre OPENP That is closed
+     send look in my package
+     matchwait 10
+PACKAGE_3:
+     pause 0.4
+     matchre DROPIT ^There is nothing in there|^I could not|^What were you
+     matchre PACKAGE ^\.\.\.wait|^Sorry\,|^Please wait\.
+     matchre COIN coin
+     matchre GETIT (\S+)(?: with a.*)?(\.)
+     matchre OPENP That is closed
+     send look in my package
+     matchwait 10
+     goto DROPIT
+COIN:
+     send get coin
+     send get coin
+     pause 0.5
+     pause 0.2
+     send get coin
+     pause 0.2
+     pause 0.2
+     goto PACKAGE
+GETIT:
+     var item $0
+     eval item replacere("%item", "with a small brass placard on it[,\.]",  "")
+     put get %item from my packag
+     pause 0.5
+     pause 0.2
+     pause 0.1
+     if matchre("$lefthand $righthand", "bloodscrip") then 
+          {
+               if ("%REDEEM" != "ON") then goto GETIT_STOW
+               send redeem blood
+               pause 0.4
+               goto PACKAGE
+          }
+     pause 0.1
+GETIT_STOW:
+     if ("$lefthandnoun" != "package") && ("$lefthand" != "Empty") then put #echo >Log Yellow **** Arena Incidental - $lefthand
+     if ("$righthandnoun" != "package") && ("$righthand" != "Empty") then put #echo >Log Yellow **** Arena Incidental - $righthand
+     pause 0.001
+     if matchre("$lefthand $righthand", "bloodscrip") then gosub stow blood
+     pause 0.1
+     if matchre("$righthand", "%TRASH.LOOT") then send put my $righthandnoun in bucket
+     if matchre("$lefthand", "%TRASH.LOOT") then send put my $lefthandnoun in bucket
+     pause 0.1
+     pause 0.1
+     if matchre("$righthand", "%BAG1.LOOT") then send put my $righthandnoun in %MAIN.BAG
+     if matchre("$lefthand", "%BAG1.LOOT") then send put my $lefthandnoun in my %MAIN.BAG
+     pause 0.2
+     pause 0.2
+     if matchre("$righthand", "%BAG2.LOOT") then send put my $righthandnoun in %SECOND.BAG
+     if matchre("$lefthand", "%BAG2.LOOT") then send put my $lefthandnoun in my %SECOND.BAG
+     pause 0.2
+     pause 0.2
+     if matchre("$righthand", "%BAG3.LOOT") then send put my $righthandnoun in %LARGE.BAG
+     if matchre("$lefthand", "%BAG3.LOOT") then send put my $lefthandnoun in my %LARGE.BAG
+     pause 0.1
+     pause 0.1
+     pause 0.1
+     if ("$lefthandnoun" != "package") && ("$lefthand" != "Empty") then gosub stow left
+     if ("$righthandnoun" != "package") && ("$righthand" != "Empty") then gosub stow right
+     pause 0.1
+     pause 0.1
+     if ("$lefthandnoun" = "package") && ("$righthand" = "Empty") then goto PACKAGE
+     if ("$righthandnoun" = "package") && ("$lefthand" = "Empty") then goto PACKAGE
+     pause 0.1
+     pause 0.2
+     if ("$lefthandnoun" != "package") && ("$lefthand" != "Empty") then send put my $lefthandnoun in my %SECOND.BAG
+     if ("$righthandnoun" != "package") && ("$righthand" != "Empty") then send put my $righthandnoun in my %SECOND.BAG
+     pause 0.3
+     if ("$lefthandnoun" != "package") && ("$lefthand" != "Empty") then send put my $lefthandnoun in my %LARGE.BAG
+     if ("$righthandnoun" != "package") && ("$righthand" != "Empty") then send put my $righthandnoun in my %LARGE.BAG
+     pause 0.5
+     goto PACKAGE
+DROPIT:
+     pause 0.1
+     if matchre("$roomobjs","(a bucket of viscous gloop|a waste bucket)") then 
+          {
+               send put my package in buck
+          }
+     else send drop my packag
+	pause 0.1
+     put #echo >Log #fd00cf **** Duskruin Arena - Won %scrip bloodscrip!
+     pause 0.7
+     if (!$standing) then gosub STAND
+     pause 0.1
+     if (!$standing) then gosub STAND
+     if matchre("$roomobjs","(%MELEE.WEAPON|%THROWN.WEAPON)") then gosub STOW $1
+     if matchre("$roomobjs", "%MELEE.WEAPON") then gosub STOW %MELEE.WEAPON
+     gosub STOW %THROWN.WEAPON
+     gosub stowing
+     var LAST FIRECHECK_1
+     gosub move SE
+FIRECHECK_1:
+     gosub FIRECHECK
+     pause 0.4
+     if ("$guild" = "Necromancer") then gosub NECROBUFF_RECHECK
+     math TOTAL.SCRIP add %scrip
+     math RUN.SCRIP add %scrip
+     pause
+     gosub COMBINE.SCRIP
+     pause 0.1
+     echo
+     echo ==============================
+     echo *** ~~ DUSKRUIN REPORT ~~
+     if (%arena = 1) then echo *** ARENA KILLS: %killcount
+     echo *** BLOODSCRIP LAST RUN: %RUN.SCRIP
+     echo *** TOTAL BLOODSCRIP THIS SESSION: %TOTAL.SCRIP
+     echo ==============================
+     echo
+     pause 0.1
+     if (%arena = 1) then put #echo >Log #fda500 *** Arena Kills: %killcount
+     put #echo >Log #fdd700 *** RUN COMPLETE - %RUN.SCRIP bloodscrip this run - %TOTAL.SCRIP total
+     pause 0.1
+     pause 0.2
+     pause 0.2
+LOOPCHECK:
+     if matchre("%LOOP", "(?i)ON") then
+          {
+               echo
+               echo ======================= 
+               echo **** LOOP IS **ON***
+               echo *** STARTING NEW RUN IN 15 SECONDS..
+               echo *** HIT ESC NOW IF YOU WANT TO QUIT
+               echo =======================
+               echo
+               pause 15
+               echo
+               echo ================ 
+               echo **** LOOP IS **ON***
+               echo *** STARTING NEW RUN 
+               echo ================
+               echo
+               pause
+               var scrip 0
+               var RUN.SCRIP 0
+               goto RESTART
+          }
+     else goto DONE
+##### BANK HEIST FINISHED
+VAULT.DONE:
+     pause 0.2
+     echo
+     echo **** HEIST DONE!
+     echo
+     pause
+     if matchre("$righthand", "(%THROWN.WEAPON|%MELEE.WEAPON|%BLUNT.WEAPON)") then gosub STOW right
+     if matchre("$lefthand", "(%THROWN.WEAPON|%MELEE.WEAPON|%BLUNT.WEAPON)") then gosub STOW left
+     pause 0.1
+     pause 0.2
+     if ("$righthand" != "Empty") && ("$righthandnoun" != "bloodscrip") && ("$righthand" != "burlap pouch") then put #echo >Log Yellow *** Duskruin Heist - Found $righthand
+     if ("$lefthand" != "Empty") && ("$lefthandnoun" != "bloodscrip") && ("$lefthand" != "burlap pouch") then put #echo >Log Yellow *** Duskruin Heist - Found $lefthand
+     if matchre("$righthandnoun|$lefthandnoun", "bloodscrip") then
+          {
+               math TOTAL.SCRIP add %scrip
+               if ("%REDEEM" != "ON") then goto VAULT.DONE.2
+               put redeem bloods
+          }
+     pause 0.1
+VAULT.DONE.2:
+     pause 0.1
+     if ("$righthand" != "Empty") && !matchre("$righthand", "burlap pouch") then gosub stow right
+     if ("$lefthand" != "Empty") && !matchre("$lefthand", "burlap pouch") then gosub stow left
+OPENPOUCH:
+     if !matchre("$righthand", "burlap pouch") && !matchre("$lefthand", "burlap pouch") then
+          {
+               if matchre("$roomobjs", "burlap pouch") then 
+                    {
+                         send get burlap pouch
+                         pause 0.5
+                    }
+          }
+     matchre OPENPOUCH ^You don't seem to be able to move
+     matchre POUCH_CHECK ^You open|^That is already
+     matchre GET_BLOOD ^I could not find|^What were
+     send open my burlap pouch
+     matchwait 7
+POUCH_CHECK:
+     if matchre("$lefthand", "burlap pouch") && ("$righthand" != "Empty") then gosub stow right
+     if matchre("$righthand", "burlap pouch") && ("$lefthand" != "Empty") then gosub stow left
+     matchre POUCH_DROP ^There is nothing in there
+     matchre POUCH_DROP ^I could not find|^What were you
+     matchre POUCH_COIN coin
+     matchre POUCH_GET (\S+)(?: with a.*)?(\.)
+     matchre OPENPOUCH That is closed
+     send look in my burlap pouch
+     matchwait 10
+     goto DROPIT
+POUCH_COIN:
+     send get coin
+     send get coin
+     pause 0.5
+     pause 0.2
+     send get coin
+     pause 0.2
+     pause 0.2
+     goto POUCH_CHECK
+POUCH_GET:
+     action goto POUCH_STOW when ^A wall of force around the number prevents you from getting it
+     var item $0
+     eval item replacere("%item", "with a small brass placard on it\.?",  "")
+     put get %item from my burlap pouch
+     pause 0.7
+     pause 0.2
+     pause 0.5
+     if matchre("($lefthandnoun|$righthandnoun)", "bloodscrip") then 
+          {
+               if ("%REDEEM" != "ON") then goto POUCH_CHECK
+               send redeem blood
+               pause 0.2
+               goto POUCH_CHECK
+          }
+     pause 0.1
+     pause 0.1
+     if !matchre("$lefthand", "(burlap pouch|throwing blades|Empty)") then put #echo >Log Yellow **** Heist Incidental - $lefthand
+     if !matchre("$righthand", "(burlap pouch|throwing blades|Empty)") then put #echo >Log Yellow **** Heist Incidental - $righthand
+     pause 0.2
+     if matchre("$righthand", "%TRASH.LOOT") then send put my $righthandnoun in bucket
+     if matchre("$lefthand", "%TRASH.LOOT") then send put my $lefthandnoun in bucket
+     pause 0.1
+     if matchre("$righthand", "%BAG1.LOOT") then send put my $righthandnoun in %MAIN.BAG
+     if matchre("$lefthand", "%BAG1.LOOT") then send put my $lefthandnoun in my %MAIN.BAG
+     if matchre("$righthand", "%BAG2.LOOT") then send put my $righthandnoun in %SECOND.BAG
+     if matchre("$lefthand", "%BAG2.LOOT") then send put my $lefthandnoun in my %SECOND.BAG
+     if matchre("$righthand", "%BAG3.LOOT") then send put my $righthandnoun in %LARGE.BAG
+     if matchre("$lefthand", "%BAG3.LOOT") then send put my $lefthandnoun in my %LARGE.BAG
+     pause 0.1
+     if !matchre("$lefthand", "burlap pouch") && ("$lefthand" != "Empty") then gosub stow left
+     if !matchre("$righthand", "burlap pouch") && ("$righthand" != "Empty") then gosub stow right
+     pause 0.1
+     pause 0.2
+     if !matchre("$lefthand", "burlap pouch") && ("$lefthand" != "Empty") then send put my $lefthandnoun in my %SECOND.BAG
+     if !matchre("$righthand", "burlap pouch") && ("$righthand" != "Empty") then send put my $righthandnoun in my %SECOND.BAG
+     pause 0.3
+     if !matchre("$lefthand", "burlap pouch") && ("$lefthand" != "Empty") then send put my $lefthandnoun in my %LARGE.BAG
+     if !matchre("$righthand", "burlap pouch") && ("$righthand" != "Empty") then send put my $righthandnoun in my %LARGE.BAG
+     pause 0.2
+     goto POUCH_CHECK
+POUCH_STOW:
+     action remove ^A wall of force around the number prevents you from getting it
+     put #echo >Log Red *** BUGGED BURLAP POUCH
+     gosub STOW pouch
+POUCH_DROP:
+     pause 0.1
+     if matchre("$roomobjs","(a bucket of viscous gloop|a waste bucket)") then 
+          {
+               send put my burl pouch in buck
+          }
+     else send drop my burl pouch
+	pause 0.1
+     pause 0.1
+GET_BLOOD:
+     matchre GET_BLOOD ^You pick
+     matchre GET_BLOOD_DONE ^What were|^I could
+     send get my bloodscrip
+     matchwait 3
+GET_BLOOD_DONE:
+     # gosub LOOTING
+     pause 0.2
+     put #echo >Log DeepPink **** DUSKRUIN HEIST - WON %scrip BLOODSCRIP
+     pause 0.7
+     if (!$standing) then gosub STAND
+     pause 0.1
+     if (!$standing) then gosub STAND
+     if matchre("$roomobjs","(%MELEE.WEAPON|%THROWN.WEAPON)") then gosub STOW $1
+     if matchre("$roomobjs", "%MELEE.WEAPON") then gosub STOW %MELEE.WEAPON
+     gosub STOW %THROWN.WEAPON
+     gosub stowing
+     if ("$guild" = "Necromancer") then gosub NECROBUFF_RECHECK
+     math TOTAL.SCRIP add %scrip
+     math RUN.SCRIP add %scrip
+     pause
+     gosub COMBINE.SCRIP
+     pause 0.5
+     echo
+     echo ==============================
+     echo *** ~~ DUSKRUIN REPORT ~~
+     if (%arena = 1) then echo *** ARENA KILLS: %killcount
+     echo *** BLOODSCRIP LAST RUN: %RUN.SCRIP
+     echo *** TOTAL BLOODSCRIP THIS SESSION: %TOTAL.SCRIP
+     echo ==============================
+     echo
+     if (%arena = 1) then put #echo >Log #fda500 *** Arena Kills: %killcount
+     put #echo >Log #fdd700 *** RUN COMPLETE - %RUN.SCRIP bloodscrip this run - %TOTAL.SCRIP total     
+     if matchre("%LOOP", "(?i)ON") then
+          {
+               pause 7
+               echo
+               echo ======================= 
+               echo **** LOOP IS **ON***
+               echo *** STARTING NEW RUN IN 10 SECONDS..
+               echo *** HIT ESC NOW IF YOU WANT TO QUIT
+               echo =======================
+               echo
+               pause 10
+               echo
+               echo ================ 
+               echo **** LOOP IS **ON***
+               echo *** STARTING NEW RUN 
+               echo ================
+               echo
+               pause
+               var scrip 0
+               var RUN.SCRIP 0
+               goto RESTART
+          }
+     else goto DONE
+################################################################################################################################
+PREBUFF:
+ if ("$guild" = "Empath") then 
+     {
+          pause 0.2
+          put prep refresh %MANA
+          pause 14
+          send cast
+          pause 0.4
+          put prep vigor %MANA
+          pause 14
+          send cast
+          pause 0.4
+          put prep mef %MANA
+          pause 14
+          send cast
+          pause 0.2
+          pause 0.4
+          return
+     }
+if ("$guild"="Necromancer") then 
+     {
+     if (("$preparedspell"="None") && ($SpellTimer.UniversalSolvent.active = 0)) then 
+          {
+               put prep usol 37
+               pause 14
+               send cast creature
+               pause
+          } 
+     else if (("$preparedspell"="None") && ($SpellTimer.QuickentheEarth.active = 0)) then 
+          {
+               put pre qe 50
+               pause
+               pause
+               send push my boots
+               pause
+               pause
+               send perform cut
+               pause 10
+               send harn 50
+               pause
+               pause
+               send cast
+               pause
+               pause
+               send invoke %MELEE.WEAPON cyclic
+               pause
+               pause
+               return
+          }
+     }
+if ("$guild" = "Warrior Mage") then 
+     {
+          send prep SW 25
+          pause 14
+          pause 
+          put cast
+          pause 0.5
+          pause 0.2
+          send prep TW 25
+          pause 14
+          pause 
+          put cast
+          pause 0.5
+          send prep SUF 25
+          pause 14
+          pause 
+          put cast
+          pause 0.5
+          return
+     }
+if ("$guild" = "Thief") then gosub KHRI_CHECK
+if ("$guild" = "Cleric") then 
+     {
+          if ($SpellTimer.MajorPhysicalProtection.Active = 0) then 
+               {
+               send prep mapp %MANA
+               pause 13
+               send cast
+               pause 0.3
+               }
+          if ($SpellTimer.Benediction.Active = 0) then 
+               {
+               send prep bene %MANA
+               pause 13
+               send cast
+               pause 0.3
+               }
+          if ($SpellTimer.Centering.Active = 0) then 
+               {
+               send prep centering %MANA
+               pause 13
+               send cast
+               pause 0.3
+               }
+          if ($SpellTimer.ProtectionfromEvil.Active = 0) then 
+               {
+               send prep PFE %MANA
+               pause 13
+               send cast
+               pause 0.3
+               }
+     }
+ if ("$guild" = "Moon Mage") then 
+     {
+          send prep SEER %MANA
+          pause 14
+          send cast
+          pause 0.5
+          send prep AUS %MANA
+          pause 14
+          send cast
+          pause 0.5
+          send prep PSY %MANA
+          pause 14
+          send cast
+          pause 0.5
+          return
+     }
+ if ("$guild" = "Barbarian") then 
+     {
+          send form monkey
+          pause 2
+          pause
+          send form dragon
+          pause 2
+          pause
+          send berserk wildfire
+          pause 2
+          pause
+          return
+     }
+ if ("$guild" = "Bard") then 
+     {
+          put prep pyre %MANA
+          pause 14
+          send cast
+          pause 0.1
+          put prep HARM %MANA
+          pause 14
+          send cast
+          pause 0.1
+          put prep RAGE %MANA
+          pause 14
+          send cast
+          pause 0.1
+          return
+     }
+ if ("$guild" = "Paladin") then 
+     {
+          if ($SpellTimer.HeroicStrength.Active = 0) then
+               {
+               send prep HES %MANA
+               pause 14
+               send cast
+               pause 0.1
+               }
+          if ($SpellTimer.Courage.Active = 0) then
+               {
+               send prep courage %MANA
+               pause 14
+               send cast
+               pause 0.1
+               }
+          if ($SpellTimer.RighteousWrath.Active = 0) then
+               {
+               send prep RW %MANA
+               pause 14
+               send cast
+               pause 0.1
+               }
+          if ($SpellTimer.HolyWarrior.Active = 0) then
+               {
+               send prep HOW %MANA
+               pause 14
+               send cast
+               pause 0.1
+               }
+          if ($SpellTimer.RutilorsEdge.Active = 0) then
+               {
+               send prep RUE 15
+               pause
+               if !matchre("$righthand", "%MELEE.WEAPON") && ("$righthand" != "Empty") then gosub STOW right
+               if !matchre("$righthand", "%MELEE.WEAPON") && ("$righthand" = "Empty") then send get %MELEE.WEAPON
+               pause 12
+               send cast %MELEE.WEAPON
+               pause 0.1
+               return
+               }     
+     }
+     return
+BUFFCHECK:
+var noblb 0
+var scriptloop 0
+if (("$preparedspell" != "None") && ($spelltime > 8)) then send cast
+pause 0.1
+if (("$preparedspell" != "None") then 
+     {
+          send release spell
+          pause 0.5
+     }
+pause 0.1
+pause 0.1
+if ("$guild"="Necromancer") then 
+     {
+     if (("$preparedspell"="None") && ($SpellTimer.UniversalSolvent.active = 0)) then 
+          {
+               put prep usol 37
+               pause 14
+               send cast creature
+               pause
+          } 
+     else if (("$preparedspell"="None") && ($SpellTimer.QuickentheEarth.active = 0)) then 
+          {
+               put pre qe 50
+               pause
+               pause
+               send push my boots
+               pause
+               pause
+               send perform cut
+               pause 10
+               send harn 50
+               pause
+               pause
+               send cast
+               pause
+               pause
+               send invoke %MELEE.WEAPON cyclic
+               pause
+               pause
+               return
+          }
+     }
+if ("$guild" = "Warrior Mage") then 
+     {
+          send prep ROS 20
+          pause 14
+          pause
+          put cast
+          return
+     }
+if ("$guild" = "Thief") then gosub KHRI_CHECK
+if ("$guild" = "Cleric") then 
+     {
+          if ($SpellTimer.MajorPhysicalProtection.Active = 0) then 
+               {
+               send prep mapp %MANA
+               pause 14
+               send cast
+               pause 0.3
+               }
+          if ($SpellTimer.Benediction.Active = 0) then 
+               {
+               send prep bene %MANA
+               pause 14
+               send cast
+               pause 0.3
+               }
+          if ($SpellTimer.Centering.Active = 0) then 
+               {
+               send prep centering %MANA
+               pause 14
+               send cast
+               pause 0.3
+               }
+          if ($SpellTimer.ProtectionfromEvil.Active = 0) then 
+               {
+               send prep PFE %MANA
+               pause 14
+               send cast
+               pause 0.3
+               }
+     }
+ if ("$guild" = "Moon Mage") then 
+     {
+          send prep psy %MANA
+          pause 14
+          send cast
+          return
+     }
+ if ("$guild" = "Barbarian") then 
+     {
+          send berserk ava
+          pause 2
+          pause
+          send roar ever
+          pause 0.1
+          return
+     }
+ if ("$guild" = "Bard") then 
+     {
+          put prep pyre %MANA
+          pause 11
+          send cast
+          pause 0.1
+          return
+     }
+ if ("$guild" = "Empath") then 
+     {
+          pause 0.2
+          put prep heal %MANA
+          pause 10
+          send cast
+          return
+     }
+ if ("$guild" = "Paladin") then 
+     {
+          if ($SpellTimer.HeroicStrength.Active = 0) then
+               {
+               send prep HES %MANA
+               pause 11
+               send cast
+               pause 0.1
+               }
+          if ($SpellTimer.Courage.Active = 0) then
+               {
+               send prep courage %MANA
+               pause 11
+               send cast
+               pause 0.1
+               }
+          # if ($SpellTimer.RighteousWrath.Active = 0) then
+               # {
+               # send prep RW %MANA
+               # pause 11
+               # send cast
+               # pause 0.1
+               # }
+          if ($SpellTimer.HolyWarrior.Active = 0) then
+               {
+               send prep HOW %MANA
+               pause 13
+               send cast
+               pause 0.1
+               }
+          if ($SpellTimer.RutilorsEdge.Active = 0) then
+               {
+               send prep RUE 15
+               pause
+               if !matchre("$righthand", "%MELEE.WEAPON") && ("$righthand" != "Empty") then gosub STOW right
+               if !matchre("$righthand", "%MELEE.WEAPON") && ("$righthand" = "Empty") then send get %MELEE.WEAPON
+               pause 10
+               send cast %MELEE.WEAPON
+               pause 0.1
+               }     
+     }
+    return
+
+KHRIUP:
+KHRI_UP:
+if ("$guild" = "Thief") then 
+     {
+          send khri %KHRI
+          pause 0.2
+          pause 0.2
+     if ("%KHRI2" != "NULL") then 
+          {
+               send khri %KHRI2
+               pause 0.1
+               pause 0.2
+               pause 0.1
+          }
+     }
+return
+
+KHRI_CHECK:
+if ($SpellTimer.KhriFocus.active = 0) then gosub khriup
+if ($SpellTimer.KhriProwess.active = 0) then gosub khriup
+return
+
+SUMMON:
+pause
+send command const come
+pause 0.5
+pause 0.5
+send invoke %MELEE.WEAPON cyclic
+pause
+pause
+if ($SpellTimer.QuickentheEarth.duration<2) then gosub QESUM
+return
+
+QESUM:
+send prep qe 50
+pause 13
+# send push my boots
+# pause
+send perform cut
+pause
+send invoke %MELEE.WEAPON 50 spell
+pause
+pause
+send cast
+pause
+send invoke %MELEE.WEAPON cyclic
+pause
+pause
+return
+
+NECROBUFF_RECHECK:
+pause 0.1
+send release spell
+pause 0.2
+send charge my %MELEE.WEAPON 50
+pause
+pause
+if ($SpellTimer.ResearchersInsight.duration<11) then
+     {
+          put pre rei 50
+          pause 17
+          if $spelltime > 1 then put invoke %MELEE.WEAPON 50
+          pause
+          pause
+          send cast
+          pause 0.5
+     }
+pause 0.5
+send charge my %MELEE.WEAPON 50
+pause
+pause
+if ($SpellTimer.KuraSilma.duration<11) then goto necrobuff
+if ($SpellTimer.IvoryMask.duration<11) then goto necrobuff
+if ($SpellTimer.WordsoftheWind.duration<11) then goto necrobuff
+send invoke %MELEE.WEAPON cyclic
+pause
+pause
+return
+
+necrobuff:
+send stow my %TMFOCI
+pause
+send get my %RITUALFOCI
+pause 1
+send prep word 600
+waitfor Words of the Wind spell
+send invoke my %RITUALFOCI
+waitfor You feel fully prepared to cast
+send cast
+pause
+pause
+send stow my %RITUALFOCI
+pause
+# pause
+# send invoke my tat
+# pause 18
+# send charge %MELEE.WEAPON 43
+# pause
+# pause
+# send invoke %MELEE.WEAPON 43 spell
+# pause
+# pause
+# send cast
+# pause 
+pause 0.5
+put pre ks 50
+pause 17
+if $spelltime > 1 then put invoke %MELEE.WEAPON 50
+pause
+pause
+send cast
+pause
+send charge my %MELEE.WEAPON 50
+pause
+pause
+put pre ivm 50
+pause 17
+if $spelltime > 1 then put invoke %MELEE.WEAPON 50
+pause
+pause
+send cast
+pause
+send charge my %MELEE.WEAPON 50
+pause
+pause
+send invoke %MELEE.WEAPON cyclic
+pause
+pause
+send get my sphere
+pause
+pause
+return
+
+FIRECHECK:
+     pause 0.001
+     matchre ON.FIRE on fire
+     matchre NO.FIRE ^You have no significant injuries
+     send health
+     matchwait 6
+     goto NO.FIRE
+ON.FIRE:
+     if (!$prone) then send fall
+     pause 0.3
+     send roll
+     pause 
+     pause
+     goto FIRECHECK
+NO.FIRE:
+     pause 0.001
+     if (!$standing) then gosub STAND
+     return
+FUCKINGPWNED:
+     action remove ^You've been defeated\. You'll be dragged out of the arena
+     pause 0.001
+     echo **** FUCKING PWNED!!! 
+     put #echo >Log Red *** Died in Duskruin! NOOB!
+     echo 
+     echo **** Waiting to be healed..
+     pause 40
+     pause 5
+     if (!$standing) then gosub STAND
+     if ($health < 90) then waiteval $health >= 90
+     var RUN.SCRIP 0
+     var scrip 0
+     var scriptloop 0
+     goto LOOPCHECK
+noSlips:
+     echo *********************************
+     echo *** RAN OUT OF DUELING SLIPS!
+     echo *********************************
+DONE:
+     pause 0.5
+     put release cyclic
+     pause 0.5
+     echo ****************************************
+     echo * FINISHED WITH DUSKRUIN SCRIPT!
+     echo * TOTAL BLOODSCRIP THIS RUN: %TOTAL.SCRIP
+     echo ****************************************
+     put #statusbar 1 *** DUSKRUIN RUNS COMPLETED! - Total Bloodscrip: %TOTAL.SCRIP
+     put #echo >Log White *** Duskruin Runs Completed - Total Bloodscrip: %TOTAL.SCRIP
+     exit
+
+GUILD.CHECK:    
+GUILD_CHECK:
+     pause 0.1
+     pause 0.1
+     action put #var race $2;put #var guild $3 when ^Name\:\s*(.*)\s*Race\:\s*(.*)\s*Guild\:\s*(.*)$
+     action put #var circle $3 when ^Gender\:\s*(.*)\s*Age\:\s*(\d+)\s*Circle\:\s*(\d+)$
+     send info;-1 encumbrance
+     matchre GUILD_CHECK_2 ^\s*Encumbrance\s*\:
+     matchwait 15
+     goto GUILD_CHECK
+GUILD_CHECK_2:
+     pause 0.1
+     if "$guild" = "Warrior" then put #var guild Warrior Mage
+     if "$guild" = "Moon" then put #var guild Moon Mage
+     action remove ^Name\:\s*(.*)\s*Race\:\s*(.*)\s*Guild\:\s*(.*)$
+     action remove ^Gender\:\s*(.*)\s*Age\:\s*(\d+)\s*Circle\:\s*(\d+)$
+     pause 0.01
+     echo =============
+     echo *** Guild: $guild
+     echo *** Circle: $circle
+     echo =============
+     pause 0.2
+     return
+
+GET_MONSTER_NAME:
+     var TARGET ON
+     var monsters $monsterlist
+     eval monsters replace("%monsters", ", ", "|")
+     eval monster1 element("%monsters", 0)
+     ### GRABS THE LAST WORD OR THE WORD BEFORE "THAT" --> (\b(\w+)\s+that\b|(\w+)\W*$)
+     if matchre("%monster1", "(\b(\S+)\s+that\b|(\S+)\W*$)") then var monster1 $1
+     eval monster1 replacere("%monster1", "that", "")
+     echo Fighting: %monster1
+     return
+stowfootitem:
+     pause .0001
+     send invoke
+     pause 0.3
+     pause 0.3
+     pause .0001
+     send stow %itemtostow
+     if matchre("$roomobjs","(%MELEE.WEAPON|%THROWN.WEAPON)") then gosub STOW $1
+     pause 0.5
+     put stow feet
+     pause 0.1
+     pause 0.1
+     pause .0001
+     pause .0001
+     var RUN.SCRIP 0
+     var scrip 0
+     var scriptloop 0
+     goto %LAST
+
+ITEM_CHECK:
+     if (%guard = 1) then 
+          {
+               pause 0.1
+               gosub PUT guard
+               var guard 0
+               var track 1
+          }
+     if (%rope = 1) then 
+          {
+               pause 0.1
+               gosub PUT cut rope 
+               var rope 0
+          }
+     if (%steal = 1) && ($monstercount < 1) then 
+          {
+               pause 0.1
+               if (!$hidden) then gosub HIDE
+               gosub PUT steal
+               gosub stow left
+               var steal 0
+          }
+     if (%pace = 1) then 
+          {
+               pause 0.1
+               gosub PUT pace
+               var steal 1
+               var pace 0
+          }
+     if (%track = 1) && ($monstercount < 1) then 
+          {
+               pause 0.1
+               gosub PUT track
+               var track 0
+          }
+     pause 0.001
+     return
+
+##############################################
+# LABYRINTH / MAZE SECTION
+#############################################
+MAZE.PREP:
+     var Rat.Type null
+     var mazeloop 0
+     pause 0.1
+     echo
+     echo **** ENTERING THE MAZE.... GOOD LUCK!
+     echo
+     if ("$righthand" != "Empty") then gosub stow right
+     if ("$lefthand" != "Empty") then gosub stow left
+     pause 0.2
+     
+WheresMyFuckingSlips:
+     pause 0.1
+     if matchre("$righthand|$lefthand", "dueling slip") then goto FuckYouLetsGo 
+     matchre WheresMyFuckingSlips ^\.\.\.wait|^Sorry\,
+     matchre noSlips ^What were|^I could
+     matchre FuckYouLetsGo ^You get|^You are already
+     put get dueling slip
+     matchwait
+
+FuckYouLetsGo:
+     pause 0.1
+     pause 0.1
+     pause 0.1
+     matchre FuckYouLetsGo ^The labyrinth guard glances at your dueling slips and mutters|^\.\.\.wait|^Sorry\,
+     matchre noSlips ^You need a dueling slip
+     matchre MAZE ^You hold out your dueling slip|^What were|^I could
+     send go portcullis
+     matchwait 7
+     goto MAZE
+     
+MONKEY_CHASE:
+     gosub clear
+     echo =================
+     echo ** CHASING RAT %Monkey.Direction
+     echo =================
+     pause 0.1
+     pause 0.1
+     gosub MOVE %Monkey.Direction
+     pause 0.2
+MONKEY_CHECK:
+     math chaseloop add 1
+     gosub clear
+     pause 2
+     if (matchre("%MONKEY.SEARCH", "(?i)ON") && (%chaseloop > 3) && !matchre("%MONKEY.EXTREME", "(?i)ON")) then
+          {
+               send search
+               pause 0.5
+               var mazeloop 0
+               var chaseloop 0
+          }
+     if matchre("%MONKEY.SEARCH", "(?i)OFF") then send search
+     pause
+     if matchre("%MONKEY.EXTREME", "(?i)ON") then 
+          {
+               echo *** PAUSING....
+               pause 10
+          }
+     pause
+     if (("$righthand" != "Empty") && !matchre("$righthand", "(burlap pouch|throwing blades|bloodscrip)")) then put #echo >Log Yellow *** Labyrinth Incidental - $righthand
+     if (("$lefthand" != "Empty") && !matchre("$lefthand", "(burlap pouch|throwing blades|bloodscrip)")) then put #echo >Log Yellow *** Labyrinth Incidental - $lefthand
+     if matchre("$righthandnoun|$lefthandnoun", "bloodscrip") then
+          {
+               put #echo >Log Aqua *** Labyrinth - %scrip bloodscrip
+               math TOTAL.SCRIP add %scrip
+               math RUN.SCRIP add %scrip
+               var scrip 0
+          }
+     pause 0.5
+     pause 0.1
+     if ("$righthand" != "Empty") then gosub stow right
+     if ("$lefthand" != "Empty") then gosub stow left
+     pause 0.2
+     if matchre("$roomobjs","(rat|monkey|bones|lumber|shards|boulders)") then gosub get $1
+     pause 0.2
+     if ("$righthand" != "Empty") then put #echo >Log Yellow *** Labyrinth Incidental - $righthand
+     if ("$lefthand" != "Empty") then put #echo >Log Yellow *** Labyrinth Incidental - $righthand    
+     pause 0.5
+     pause 0.5
+     goto MAZE
+MONKEY_FOUND:
+     pause 0.001
+     var MONKEY.SEARCH OFF
+     var MONKEY.EXTREME OFF
+     put #echo >Log Lime *** FOUND A %Rat.Type !!! Congrats!
+     if ("$righthand" != "Empty") then put #echo >Log Lime *** Pet Home- $righthand
+     if ("$lefthand" != "Empty") then put #echo >Log Lime *** Pet Home- $lefthand
+     pause 0.4
+     if ("$righthand" != "Empty") then gosub stow right
+     if ("$lefthand" != "Empty") then gosub stow left
+     pause 0.5
+     if matchre("%MONKEY.STOP", "(?i)ON") then 
+          {
+               var LOOP OFF
+               put #echo >Log ** FOUND A %Rat.Type - TURNING OFF LOOP!
+               put #echo >Log ** Go give it to the mud-covered child
+          }
+MAZE:
+     pause 0.1
+     math mazeloop add 1
+     action instant var Monkey.Direction $1;goto MONKEY_CHASE when small rat scurries (\w+)\!|small monkey scurries (\w+)\!
+     action send search when ^You notice a .* scurrying around the area
+     action var Rat.Type $1;goto MONKEY_FOUND when The (.*) scampers toward you and nuzzles your foot\, quickly deciding you\'re its new owner|You pick them both up\, claiming your new pet\.     
+     action var MONKEY.SEARCH OFF;var MONKEY.EXTREME OFF;echo *** 5 MINS LEFT - TURNING MONKEY.SEARCH OFF when only have about 5 minutes left 
+     pause 0.1
+     if matchre("%MONKEY.SEARCH", "(?i)ON") then
+          {
+               echo =====================================
+               echo ***   MONKEY SEARCH IS ~~ON~~
+               echo *** SCANNING MUCH MORE EXTENSIVELY
+               echo ***     TO HUNT FOR MONKEYS 
+               echo =====================================
+          }
+     if matchre("$roomobjs","(rat|monkey|bones|lumber|shards|boulders)") then gosub get $1
+     pause 0.001
+     if ("$righthand" != "Empty") then gosub stow right
+     if ("$lefthand" != "Empty") then gosub stow left
+     pause 0.2
+     if (!$standing) then gosub STAND
+     gosub MOVE_RANDOM
+     if matchre("%MONKEY.SEARCH", "(?i)ON") then gosub MOVE_RANDOM
+     if matchre("$roomobjs","(rat|monkey|bones|lumber|shards|boulders)") then gosub MAZE.SEARCH
+     gosub MOVE_RANDOM
+     if matchre("%MONKEY.SEARCH", "(?i)ON") then gosub MOVE_RANDOM
+     if matchre("$roomobjs","(rat|monkey|bones|lumber|shards|boulders)") then gosub MAZE.SEARCH
+     gosub MOVE_RANDOM
+     if matchre("%MONKEY.SEARCH", "(?i)ON") then gosub MOVE_RANDOM
+     if matchre("$roomobjs","(rat|monkey|bones|lumber|shards|boulders)") then gosub MAZE.SEARCH
+     gosub MOVE_RANDOM
+     if matchre("%MONKEY.SEARCH", "(?i)ON") then gosub MOVE_RANDOM
+     if matchre("$roomobjs","(rat|monkey|bones|lumber|shards|boulders)") then gosub MAZE.SEARCH
+     gosub MOVE_RANDOM
+     if matchre("%MONKEY.SEARCH", "(?i)ON") then gosub MOVE_RANDOM
+     if matchre("$roomobjs","(rat|monkey|bones|lumber|shards|boulders)") then gosub MAZE.SEARCH
+     gosub MOVE_RANDOM
+     if matchre("%MONKEY.SEARCH", "(?i)ON") then gosub MOVE_RANDOM
+     if matchre("$roomobjs","(rat|monkey|bones|lumber|shards|boulders)") then gosub MAZE.SEARCH
+     gosub MOVE_RANDOM
+     if matchre("%MONKEY.SEARCH", "(?i)ON") then gosub MOVE_RANDOM
+     if matchre("$roomobjs","(rat|monkey|bones|lumber|shards|boulders)") then gosub MAZE.SEARCH
+     gosub MOVE_RANDOM
+     if matchre("%MONKEY.SEARCH", "(?i)ON") then gosub MOVE_RANDOM
+     if matchre("$roomobjs","(rat|monkey|bones|lumber|shards|boulders)") then gosub MAZE.SEARCH
+     gosub MOVE_RANDOM
+     if matchre("%MONKEY.SEARCH", "(?i)ON") then gosub MOVE_RANDOM
+     if matchre("$roomobjs","(rat|monkey|bones|lumber|shards|boulders)") then gosub MAZE.SEARCH
+     pause 0.1
+     pause 0.1
+     if (!matchre("%MONKEY.SEARCH", "(?i)ON") && !matchre("%MONKEY.EXTREME", "(?i)ON") then send search
+     if (matchre("%MONKEY.SEARCH", "(?i)ON") && (%mazeloop > 4) && !matchre("%MONKEY.EXTREME", "(?i)ON")) then
+          {
+               send search
+               var mazeloop 0
+          }
+     pause 0.5
+     pause 0.2
+     if (("$righthand" != "Empty") && !matchre("$righthand", "(burlap pouch|throwing blades|bloodscrip)")) then put #echo >Log Yellow *** Labyrinth Incidental - $righthand
+     if (("$lefthand" != "Empty") && !matchre("$lefthand", "(burlap pouch|throwing blades|bloodscrip)")) then put #echo >Log Yellow *** Labyrinth Incidental - $lefthand
+     if matchre("$righthandnoun|$lefthandnoun", "bloodscrip") then
+          {
+               echo *** Labyrinth - %scrip bloodscrip
+               put #echo >Log Aqua *** Labyrinth Incidental - %scrip bloodscrip
+               math TOTAL.SCRIP add %scrip
+               math RUN.SCRIP add %scrip
+               var scrip 0
+          }
+     pause 0.1
+     pause 0.1
+     if ("$righthand" != "Empty") then gosub stow right
+     if ("$lefthand" != "Empty") then gosub stow left
+     if matchre("$roomobjs","(rat|rat|monkey|bones|lumber|shards|boulders)") then gosub get $1
+     pause 0.2
+     if ("$righthand" != "Empty") then put #echo >Log Yellow *** Labyrinth Incidental - $righthand
+     if ("$lefthand" != "Empty") then put #echo >Log Yellow *** Labyrinth Incidental - $righthand    
+     pause 0.2
+     if (%mazeloop > 10) then var mazeloop 0
+     goto MAZE
+
+MAZE.SEARCH:
+     var thing $1
+     pause 0.001
+     pause 0.1
+     put search
+     pause 0.5
+     gosub GET %thing
+     return
+     
+MAZE.DONE:
+     pause 0.2
+     echo
+     echo **** MAZE DONE!
+     echo
+     pause
+     if ("$righthand" != "Empty") && !matchre("$righthand", "(burlap pouch|throwing blades|bloodscrip)") then put #echo >Log Yellow *** Labyrinth Incidental - Found $righthand
+     if ("$lefthand" != "Empty") && !matchre("$lefthand", "(burlap pouch|throwing blades|bloodscrip)") then put #echo >Log Yellow *** Labyrinth Incidental- Found $lefthand
+     if matchre("$righthandnoun|$lefthandnoun", "bloodscrip") then
+          {
+               put #echo >Log Aqua *** Labyrinth - found %scrip bloodscript
+               math TOTAL.SCRIP add %scrip
+               math RUN.SCRIP add %scrip
+               var scrip 0
+          }
+     pause 0.1
+     pause 0.1
+     if ("$righthand" != "Empty") then gosub stow right
+     if ("$lefthand" != "Empty") then gosub stow left
+     echo
+     echo *** TOTAL BLOODSCRIP FOUND: %TOTAL.SCRIP
+     echo
+     pause 0.1
+     gosub COMBINE.SCRIP
+     pause 0.5
+     echo
+     echo ==============================
+     echo *** ~~ DUSKRUIN REPORT ~~
+     echo *** BLOODSCRIP LAST RUN: %RUN.SCRIP
+     echo *** TOTAL BLOODSCRIP THIS SESSION: %TOTAL.SCRIP
+     echo ==============================
+     echo
+     put #echo >Log #fdd700 *** RUN COMPLETE - %RUN.SCRIP bloodscrip this run - %TOTAL.SCRIP total
+     if matchre("%LOOP", "(?i)ON") then
+          {
+               pause 7
+               echo
+               echo ======================= 
+               echo **** LOOP IS **ON***
+               echo *** STARTING NEW RUN IN 10 SECONDS..
+               echo *** HIT ESC NOW IF YOU WANT TO QUIT
+               echo =======================
+               echo
+               pause 10
+               echo
+               echo ================ 
+               echo **** LOOP IS **ON***
+               echo *** STARTING NEW RUN 
+               echo ================
+               echo
+               pause
+               var scrip 0
+               var RUN.SCRIP 0
+               goto RESTART
+          }
+     else goto DONE  
+COMBINE.SCRIP:
+     echo 
+     echo **** COMBINING BLOODSCRIP...
+     echo
+     if ("$righthand" != "Empty") then gosub stow right
+     if ("$lefthand" != "Empty") then gosub stow left
+     pause 0.001
+     put get my bloodscrip
+     pause 0.3
+     pause 0.1
+SECOND.SCRIP:
+     pause 0.1
+     if !contains("$lefthand|$righthand", "bloodscrip") then return
+     if ("$righthandnoun" != "bloodscrip") then goto DONE.COMBINE
+     matchre SECOND.SCRIP ^\.\.\.wait|^Sorry\,
+     matchre DONE.COMBINE ^What were you|^I could not
+     matchre COMBINE.IT ^You get|^You are
+     put get my second bloodscrip
+     matchwait 5
+COMBINE.IT:
+     pause 0.1
+     #if ("$lefthand" = "Empty") then goto DONE.COMBINE
+     put combine my bloodsc
+     pause 0.2
+     pause 0.1
+     goto SECOND.SCRIP
+DONE.COMBINE:
+     pause 0.2
+     if (%REDEEM != "ON") then goto DONE.COMBINE.2
+     put redeem blood
+     pause 0.2
+DONE.COMBINE.2:
+     if ("$righthand" != "Empty") then gosub stow right
+     if ("$lefthand" != "Empty") then gosub stow left
+     pause 0.1
+     return
+     
+NOT_FOUND:
+     echo =====================================
+     echo *** ERROR! VALID ROOM NOT FOUND
+     echo *** START OUTSIDE ONE OF THE EVENTS
+     echo =====================================
+     exit
+
+#######################################################################################
+######################################################################################
+# GOSUBS
+################################
+# BLEEDER CHECK/TENDING SYSTEM
+################################
+BLEEDERCHECK:
+     delay 0.0001
+     if "$righthandnoun" = "arrow" then send drop arrow
+     if "$lefthandnoun" = "arrow" then send drop arrow
+     if "$righthandnoun" = "bolt" then send drop bolt
+     if "$lefthandnoun" = "bolt" then send drop bolt
+     if "$righthandnoun" = "fragment" then send drop fragment
+     if "$lefthandnoun" = "fragment" then send drop fragment
+     if "$righthandnoun" = "dart" then send drop dart
+     if "$lefthandnoun" = "dart" then send drop dart
+	 pause 0.1
+     action goto BLEEDCHECK when The bandages binding your (.+) soak through with blood becoming useless and you begin bleeding again\.
+     action var BLEEDING_HEAD YES when ^(?!.*\(tended\))\s*(head)\s{7}(.*)
+     action var BLEEDING_NECK YES when ^(?!.*\(tended\))\s*(neck)\s{7}(.*)
+     action var BLEEDING_CHEST YES when ^(?!.*\(tended\))\s*(chest)\s{7}(.*)
+     action var BLEEDING_ABDOMEN YES when ^(?!.*\(tended\))\s*(abdomen)\s{7}(.*)
+     action var BLEEDING_BACK YES when ^(?!.*\(tended\))\s*(back)\s{7}(.*)
+     action var BLEEDING_R_ARM YES when ^(?!.*\(tended\))\s*r(?:ight|.) arm\s{7}(.*)
+     action var BLEEDING_L_ARM YES when ^(?!.*\(tended\))\s*l(?:eft|.) arm\s{7}(.*)
+     action var BLEEDING_R_LEG YES when ^(?!.*\(tended\))\s*r(?:ight|.) leg\s{7}(.*)
+     action var BLEEDING_L_LEG YES when ^(?!.*\(tended\))\s*l(?:eft|.) leg\s{7}(.*)
+     action var BLEEDING_R_HAND YES when ^(?!.*\(tended\))\s*r(?:ight|.) hand\s{7}(.*)
+     action var BLEEDING_L_HAND YES when ^(?!.*\(tended\))\s*l(?:eft|.) hand\s{7}(.*)
+     action var BLEEDING_L_EYE YES when ^(?!.*\(tended\))\s*l(?:eft|.) eye\s{7}(.*)
+     action var BLEEDING_R_EYE YES when ^(?!.*\(tended\))\s*r(?:ight|.) eye\s{7}(.*)
+     action var BLEEDING_SKIN YES when ^(?!.*\(tended\))\s*(skin)\s{7}(.*)
+     action var BLEEDING_HEAD YES when lodged\s*.* into your head
+     action var BLEEDING_HEAD YES when lodged\s*.* in your head
+     action var BLEEDING_NECK YES when lodged\s*.* into your neck
+     action var BLEEDING_NECK YES when lodged\s*.* in your neck
+     action var BLEEDING_CHEST YES when lodged\s*.* into your chest
+     action var BLEEDING_CHEST YES when lodged\s*.* in your chest
+     action var BLEEDING_ABDOMEN YES when lodged\s*.* into your abdomen
+     action var BLEEDING_ABDOMEN YES when lodged\s*.* in your abdomen
+     action var BLEEDING_BACK YES when lodged\s*.* into your back
+     action var BLEEDING_BACK YES when lodged\s*.* in your back
+     action var BLEEDING_R_ARM YES when lodged\s*.* into your right arm
+     action var BLEEDING_R_ARM YES when lodged\s*.* in your right arm
+     action var BLEEDING_L_ARM YES when lodged\s*.* into your left arm
+     action var BLEEDING_L_ARM YES when lodged\s*.* in your left arm
+     action var BLEEDING_R_LEG YES when lodged\s*.* into your right leg
+     action var BLEEDING_R_LEG YES when lodged\s*.* in your right leg
+     action var BLEEDING_L_LEG YES when lodged\s*.* into your left leg
+     action var BLEEDING_L_LEG YES when lodged\s*.* into your left leg
+     action var BLEEDING_R_HAND YES when lodged\s*.* into your right hand
+     action var BLEEDING_R_HAND YES when lodged\s*.* in your right hand
+     action var BLEEDING_L_HAND YES when lodged\s*.* into your left hand
+     action var BLEEDING_L_HAND YES when lodged\s*.* in your left hand
+     action var BLEEDING_L_EYE YES when lodged\s*.* into your left eye
+     action var BLEEDING_L_EYE YES when lodged\s*.* in your left eye
+     action var BLEEDING_R_EYE YES when lodged\s*.* into your right eye
+     action var BLEEDING_R_EYE YES when lodged\s*.* in your right eye
+     action var POISON YES when ^You.+(poisoned)
+     action var POISON YES when ^You.+(poisoned)
+BLEEDYES:
+     if "$righthandnoun" = "arrow" then send drop arrow
+     if "$lefthandnoun" = "arrow" then send drop arrow
+     if "$righthandnoun" = "bolt" then send drop bolt
+     if "$lefthandnoun" = "bolt" then send drop bolt
+     if "$righthandnoun" = "fragment" then send drop fragment
+     if "$lefthandnoun" = "fragment" then send drop fragment
+     if "$righthandnoun" = "dart" then send drop dart
+     if "$lefthandnoun" = "dart" then send drop dart
+     pause 0.1
+     echo [Checking for Bleeders]
+     pause 0.1
+     matchre yesbleeding Bleeding|arrow lodged|bolt lodged
+     matchre END.OF.BLEEDER ^You pause a moment|^The THINK verb|Syntax|Thinking|Encumbrance|Encumbrance:
+     match bleedyes It's all a blur!
+     put health;Encumbrance 
+     matchwait 6
+     echo [No bleeder found - exiting bleeder check]
+     goto END.OF.BLEEDER
+YESBLEEDING:
+     echo **** HEALING BLEEDER ****
+     if "%INFECTED" = "YES" then
+     {
+     echo *************************************
+     echo **** WARNING ** YOU ARE INFECTED ****
+     echo *************************************
+     }
+     if "%BLEEDING_HEAD" = "YES" then gosub tend head
+     if "%BLEEDING_NECK" = "YES" then gosub tend neck
+     if "%BLEEDING_CHEST" = "YES" then gosub tend chest
+     if "%BLEEDING_ABDOMEN" = "YES" then gosub tend abdomen
+     if "%BLEEDING_BACK" = "YES" then gosub tend back
+     if "%BLEEDING_R_ARM" = "YES" then gosub tend right arm
+     if "%BLEEDING_L_ARM" = "YES" then gosub tend left arm
+     if "%BLEEDING_R_LEG" = "YES" then gosub tend right leg
+     if "%BLEEDING_L_LEG" = "YES" then gosub tend left leg
+     if "%BLEEDING_R_HAND" = "YES" then gosub tend right hand
+     if "%BLEEDING_L_HAND" = "YES" then gosub tend left hand
+     if "%BLEEDING_L_EYE" = "YES" then gosub tend left eye
+     if "%BLEEDING_R_EYE" = "YES" then gosub tend right eye
+     if "%BLEEDING_SKIN" = "YES" then gosub tend skin
+     var BLEEDING_HEAD NO
+     var BLEEDING_NECK NO
+     var BLEEDING_CHEST NO
+     var BLEEDING_ABDOMEN NO
+     var BLEEDING_BACK NO
+     var BLEEDING_R_ARM NO
+     var BLEEDING_L_ARM NO
+     var BLEEDING_R_LEG NO
+     var BLEEDING_L_LEG NO
+     var BLEEDING_R_HAND NO
+     var BLEEDING_L_HAND NO
+     var BLEEDING_L_EYE NO
+     var BLEEDING_R_EYE NO
+     var BLEEDING_SKIN NO
+     goto END.OF.BLEEDER
+TEND: 
+     var bleeder $0
+     echo ***************************
+     echo [Tending Bleeder: %bleeder] 
+     echo ***************************
+     if $prone then gosub put stand
+tend_bleeder:
+     gosub put tend my %bleeder 
+     pause 0.2
+     pause 0.2
+     pause 0.1
+          if contains("$roomobjs","driftwood log") && ("$righthand" = "crossbow bolt") || ("$lefthand" = "crossbow bolt") then 
+          {
+          put put my bolt in log
+          pause .1
+          }
+     pause 0.2
+     if "$righthandnoun" = "arrow" then send drop arrow
+     if "$lefthandnoun" = "arrow" then send drop arrow
+     if "$righthandnoun" = "bolt" then send drop bolt
+     if "$lefthandnoun" = "bolt" then send drop bolt
+     if "$righthandnoun" = "fragment" then send drop fragment
+     if "$lefthandnoun" = "fragment" then send drop fragment
+     if "$righthandnoun" = "dart" then send drop dart
+     if "$lefthandnoun" = "dart" then send drop dart
+tend_bleeder2:
+     pause 0.1
+     gosub put tend my %bleeder 
+     pause 0.1
+          if contains("$roomobjs","driftwood log") && ("$righthand" = "crossbow bolt") || ("$lefthand" = "crossbow bolt") then 
+          {
+          put put my bolt in log
+          pause .1
+          }
+     pause 0.2
+     if "$righthandnoun" = "arrow" then send drop arrow
+     if "$lefthandnoun" = "arrow" then send drop arrow
+     if "$righthandnoun" = "bolt" then send drop bolt
+     if "$lefthandnoun" = "bolt" then send drop bolt
+     if "$righthandnoun" = "fragment" then send drop fragment
+     if "$lefthandnoun" = "fragment" then send drop fragment
+     if "$righthandnoun" = "dart" then send drop dart
+     if "$lefthandnoun" = "dart" then send drop dart
+     pause 0.1
+     pause 0.1
+     echo [Leaving Bleeder System]
+     RETURN
+END.OF.BLEEDER:
+     var BLEEDING_HEAD NO
+     var BLEEDING_NECK NO
+     var BLEEDING_CHEST NO
+     var BLEEDING_ABDOMEN NO
+     var BLEEDING_BACK NO
+     var BLEEDING_R_ARM NO
+     var BLEEDING_L_ARM NO
+     var BLEEDING_R_LEG NO
+     var BLEEDING_L_LEG NO
+     var BLEEDING_R_HAND NO
+     var BLEEDING_L_HAND NO
+     var BLEEDING_L_EYE NO
+     var BLEEDING_R_EYE NO
+     var BLEEDING_SKIN NO
+     action remove The bandages binding your (.+) soak through with blood becoming useless and you begin bleeding again\.
+     debuglevel 0
+     RETURN
+#### COMBAT ATTACK SUBS
+ATTACK:
+     delay 0.0001
+     if ($stamina < 35) then gosub STAMINA_WAIT
+     var LOCATION ATTACK_1
+     ATTACK_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre STUNNED ^You are still stunned
+	 matchre CALMED ^Strangely\, you don\'t feel like fighting right now\.
+     matchre RETURN ^Roundtime\:?|^\[Roundtime\:?|^\(Roundtime\:?
+     matchre RETURN ^You can not slam with .*\!
+     matchre RETURN ^There is nothing else to face
+     matchre RETURN ^You aren't close enough to attack
+     matchre RETURN ^You turn to face
+     matchre RETURN ^It's flying
+     matchre RETURN ^You spin around to face
+     matchre RETURN ^You stop advancing because
+     matchre RETURN ^At what are you trying to .*\?
+	 matchre RETURN ^You need two hands to wield this weapon\!
+	 matchre RETURN You're
+     send attack
+     matchwait 3
+     # put #echo >$Log Crimson $datetime *** MISSING MATCH IN ATTACK! (utility.inc) ***
+     # put #log $datetime MISSING MATCH IN ATTACK (utility.inc)
+     return
+JAB:
+     delay 0.0001
+     pause 0.01
+     if ($stamina < 35) then gosub STAMINA_WAIT
+     var LOCATION JAB_1
+     JAB_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre STUNNED ^You are still stunned
+	 matchre CALMED ^Strangely\, you don\'t feel like fighting right now\.
+     matchre RETURN ^Roundtime\:?|^\[Roundtime\:?|^\(Roundtime\:?
+     matchre RETURN ^You can not slam with .*\!
+     matchre RETURN ^There is nothing else to face
+     matchre RETURN ^You aren't close enough to attack
+     matchre RETURN ^You turn to face
+     matchre RETURN ^It's flying
+     matchre RETURN ^You spin around to face
+     matchre RETURN ^You stop advancing because
+     matchre RETURN ^At what are you trying to .*\?
+	 matchre RETURN ^You need two hands to wield this weapon\!
+	 matchre RETURN You're
+     send jab
+     matchwait 3
+     # put #echo >$Log Crimson $datetime *** MISSING MATCH IN JAB! (utility.inc) ***
+     # put #log $datetime MISSING MATCH IN JAB (utility.inc)
+     return
+FEINT:
+     delay 0.0001
+     pause 0.01
+     if ($stamina < 35) then gosub STAMINA_WAIT
+     var LOCATION FEINT_1
+     FEINT_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre STUNNED ^You are still stunned
+	 matchre CALMED ^Strangely\, you don\'t feel like fighting right now\.
+     matchre RETURN ^Roundtime\:?|^\[Roundtime\:?|^\(Roundtime\:?
+     matchre RETURN ^You can not slam with .*\!
+     matchre RETURN ^There is nothing else to face
+     matchre RETURN ^You aren't close enough to attack
+     matchre RETURN ^You turn to face
+     matchre RETURN ^It's flying
+     matchre RETURN ^You spin around to face
+     matchre RETURN ^You stop advancing because
+     matchre RETURN ^At what are you trying to .*\?
+	 matchre RETURN ^You need two hands to wield this weapon\!
+     matchre RETURN You're
+	 send feint
+     matchwait 3
+     # put #echo >$Log Crimson $datetime *** MISSING MATCH IN FEINT! (utility.inc) ***
+     # put #log $datetime MISSING MATCH IN FEINT (utility.inc)
+     return
+FEINTLEFTEYE:
+     delay 0.0001
+     if ($stamina < 35) then gosub STAMINA_WAIT
+     var LOCATION FEINTLEFTEYE_1
+     FEINTLEFTEYE_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre STUNNED ^You are still stunned
+	matchre CALMED ^Strangely\, you don\'t feel like fighting right now\.
+     matchre RETURN ^Roundtime\:?|^\[Roundtime\:?|^\(Roundtime\:?
+     matchre RETURN ^You can not slam with .*\!
+     matchre RETURN ^There is nothing else to face
+     matchre RETURN ^You aren't close enough to attack
+     matchre RETURN ^You turn to face
+     matchre RETURN ^You spin around to face
+     matchre RETURN ^You stop advancing because
+     matchre RETURN ^At what are you trying to .*\?
+	matchre RETURN ^You need two hands to wield this weapon\!
+     send feint left eye
+     matchwait 3
+     put #echo >$Log Crimson $datetime *** MISSING MATCH IN FEINTLEFTEYE! (utility.inc) ***
+     put #log $datetime MISSING MATCH IN FEINTLEFTEYE (utility.inc)
+     return
+	 
+BACKSTABING:
+	if (!$monstercount) then goto RETURN
+     delay 0.0001
+     #if ($stamina < 35) then gosub STAMINA_WAIT
+     var LOCATION BACKSTAB_1
+	if ($hidden = 0) then gosub HIDE
+     pause 0.001
+     if (($circle > 80) && ($concentration > 70)) then put khri eliminate
+     pause 0.1
+     pause 0.1
+     BACKSTAB_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre STUNNED ^You are still stunned
+     matchre CALMED ^Strangely\, you don\'t feel like fighting right now\.
+	matchre FEINTLEFTEYE It would help if you were closer to the .*\.
+	matchre ATTACK ^You can\'t backstab that\.
+     matchre ATTACK too clumsy
+     matchre ATTACK ^You\'ll need something a little
+	matchre RETURN ^You must be hidden
+     matchre RETURN ^Roundtime\:?|^\[Roundtime\:?|^\(Roundtime\:?
+     matchre RETURN ^You can not slam with .*\!
+     matchre RETURN ^There is nothing else to face
+     matchre RETURN ^You aren't close enough to attack
+     matchre RETURN ^You turn to face
+     matchre RETURN ^You spin around to face
+     matchre RETURN ^You stop advancing because
+     matchre RETURN ^You slip
+	matchre RETURN ^You'll have to wait
+     matchre RETURN ^At what are you trying to .*\?
+     matchre RETURN ^This type of weapon is entirely unsuitable
+     matchre RETURN ^Roundtime\:?|^\[Roundtime\:?|^\(Roundtime\:?|^\[Roundtime|^Roundtime
+     matchre RETURN ^You (?:put|must|need|can|turn|aren't|stop|spin|drop|set|are|slip|carefully) .*\.
+     matchre RETURN ^There is nothing else to face
+     matchre RETURN ^At what are you trying to .*\?
+     matchre RETURN ^Backstab what\?|Face what\?
+     matchre RETURN flying too high for you to attack|flying far too high to hit
+     send backstab
+     matchwait 3
+     # put #echo >$Log Crimson $datetime *** MISSING MATCH IN BACKSTAB! (utility.inc) ***
+     # put #log $datetime MISSING MATCH IN BACKSTAB (utility.inc)
+     return
+DRAW:
+     delay 0.0001
+     var LOCATION DRAW_1
+     DRAW_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre STUNNED ^You are still stunned
+	 matchre CALMED ^Strangely\, you don\'t feel like fighting right now\.
+     matchre RETURN ^Roundtime\:?|^\[Roundtime\:?|^\(Roundtime\:?
+     matchre RETURN ^There is nothing else to face
+     matchre RETURN ^You aren't close enough to attack
+     matchre RETURN ^You turn to face
+     matchre RETURN ^You spin around to face
+     matchre RETURN ^You stop advancing because
+     matchre RETURN ^At what are you trying to .*\?
+     send draw
+     matchwait 3
+     # put #echo >$Log Crimson $datetime *** MISSING MATCH IN DRAW! (utility.inc) ***
+     # put #log $datetime MISSING MATCH IN DRAW (utility.inc)
+     return
+CHOP:
+     delay 0.0001
+     var LOCATION CHOP_1
+     CHOP_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre STUNNED ^You are still stunned
+	 matchre CALMED ^Strangely\, you don\'t feel like fighting right now\.
+     matchre RETURN ^Roundtime\:?|^\[Roundtime\:?|^\(Roundtime\:?
+     matchre RETURN ^There is nothing else to face
+     matchre RETURN ^You aren't close enough to attack
+     matchre RETURN ^You turn to face
+     matchre RETURN ^You spin around to face
+     matchre RETURN ^You stop advancing because
+     matchre RETURN ^At what are you trying to .*\?
+     send chop
+     matchwait 3
+     # put #echo >$Log Crimson $datetime *** MISSING MATCH IN CHOP! (utility.inc) ***
+     # put #log $datetime MISSING MATCH IN CHOP (utility.inc)
+     return
+#### DODGE AND PARRY
+DODGE:
+     delay 0.0001
+     var LOCATION DODGE_1
+     DODGE_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre STUNNED ^You are still stunned
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+	 matchre CALMED ^Strangely\, you don\'t feel like fighting right now\.
+     matchre RETURN ^But you are already dodging\!
+     matchre RETURN ^You move into a position to dodge\.
+     # matchre DODGE ^Roundtime\:?|^\[Roundtime\:?|^\(Roundtime\:?
+     send dodge
+     matchwait
+PARRY:
+     delay 0.0001
+     var LOCATION PARRY_1
+     PARRY_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre STUNNED ^You are still stunned
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+	 matchre CALMED ^Strangely\, you don\'t feel like fighting right now\.
+     matchre RETURN ^You are already in a position to parry\.
+     matchre RETURN ^You move into a position to parry\.
+     # matchre PARRY ^Roundtime\:?|^\[Roundtime\:?|^\(Roundtime\:?
+     send parry
+     matchwait
+#### WAIT FOR STAMINA
+STAMINA_WAIT:
+     delay 0.0001
+     put #echo Crimson **************************************************
+     put #echo Crimson ***** STAMINA IS LOW.  WAITING TO REGAIN IT. *****
+     put #echo Crimson **************************************************
+     #if ($stamina < 85) then waiteval ($stamina > 90)
+     return
+
+#### RANGED ATTACK SUBS
+LOAD:
+     delay 0.0001
+     if (!$standing) then gosub STAND
+     var LOCATION LOAD_1
+     LOAD_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre STUNNED ^You are still stunned\.
+     matchre WEBBED ^You can't do that while entangled in a web\.
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+	 matchre CALMED ^Strangely\, you don\'t feel like fighting right now\.
+     matchre AIM ^You reach into your .* to load .*\.
+     matchre AIM ^You load .* in your hand\.
+     matchre AIM ^.* is already loaded with
+     matchre LOAD_RETRIEVE ^You don't have the (?:right|proper) ammunition
+     matchre LOAD_RETRIEVE ^As you try to
+     matchre LOAD_STOW ^.* in your left hand
+     send load
+     matchwait
+LOAD_STOW:
+     delay 0.0001
+     gosub STOW left
+     goto LOAD
+LOAD_RETRIEVE:
+     delay 0.0001
+     gosub RETRIEVE_CHECK
+     goto LOAD
+AIM:
+     delay 0.0001
+     if (!$standing) then gosub STAND
+     if ($hidden) && ("$guild" = "Paladin") then gosub UNHIDE
+     var LOCATION AIM_1
+     AIM_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre STUNNED ^You are still stunned\.
+     matchre WEBBED ^You can't do that while entangled in a web\.
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+     matchre AIM_WAIT ^You begin to target
+     matchre AIM_WAIT ^You are already targetting that\!
+	 matchre CALMED ^Strangely\, you don\'t feel like fighting right now\.
+     matchre RETURN ^I could not find what you were referring to\.
+     matchre RETURN ^\[You're .*balanced?\]
+     matchre RETURN ^There is nothing else to face
+     matchre RETURN ^You aren't close enough to attack
+     matchre RETURN ^You turn to face
+     matchre RETURN ^You spin around to face
+     matchre RETURN ^You stop advancing because
+     send aim
+     matchwait
+AIM_WAIT:
+     delay 0.0001
+     matchre FIRE ^You think you have your best shot possible now\.
+     matchre AIM ^You stop concentrating on aiming your weapon\.
+     matchwait
+FIRE:
+     delay 0.0001
+     if (!$standing) then gosub STAND
+     var LOCATION FIRE_1
+     FIRE_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre STUNNED ^You are still stunned\.
+     matchre WEBBED ^You can't do that while entangled in a web\.
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+	 matchre CALMED ^Strangely\, you don\'t feel like fighting right now\.
+     matchre FIRE_1 ^How can you poach if you are not hidden\?
+     matchre RETURN ^You were aiming at a different target\, but you fire anyway\.
+     matchre RETURN ^I could not find what you were referring to\.
+     matchre RETURN ^\[You're .*balanced?\]
+     matchre RETURN ^There is nothing else to face
+     matchre RETURN ^You aren't close enough to attack
+     matchre RETURN ^You turn to face
+     matchre RETURN ^You spin around to face
+     matchre RETURN ^You stop advancing because
+     matchre RETURN ^Roundtime\:?|^\[Roundtime\:?|^\(Roundtime\:?
+     if ($hidden) then send poach
+     else send fire
+     matchwait
+
+#### FACING SUBS
+FACE:
+     delay 0.0001
+     gosub FACE_NEXT
+     goto ASSESS
+FACE_NEXT:
+     delay 0.0001
+     var LOCATION FACE_NEXT_1
+     FACE_NEXT_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre STUNNED ^You are still stunned
+     matchre RETURN ^You turn
+     matchre RETURN ^There is nothing else to face\!
+     matchre RETURN ^What were you referring to\?
+     matchre RETURN ^Face what\?
+     send face next
+     matchwait
+
+#### TM SPELL SUBS
+TARGET_PREP:
+     delay 0.0001
+     var targetprep $0
+     var LOCATION TARGET_PREP_1
+     TARGET_PREP_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre STUNNED ^You are still stunned
+	matchre CALMED ^Strangely\, you don\'t feel like fighting right now\.
+     matchre TARGET_RELEASE ^You are not engaged to anything\, so you must specify a target to focus on\!
+     matchre TARGET_RELEASE ^There is no need to target a .*\.  It is already dead\.
+     matchre TARGET_RELEASE ^I could not find what you were referring to\.
+     matchre TARGET_RELEASE ^This spell cannot be targeted\.
+     matchre RETURN ^You begin to weave mana lines into a target pattern around .*\.
+     matchre RETURN ^You begin chanting a psalm to invoke the .* spell\.
+     send target %targetprep
+     matchwait 15
+     put #echo >$Log Crimson $datetime *** MISSING MATCH IN TARGET_PREP! (utility.inc) ***
+     put #log $datetime MISSING MATCH IN TARGET_PREP (utility.inc)
+     return
+TARGET_WAIT:
+     delay 0.0001
+     matchre TARGET_RELEASE ^Your concentration slips for a moment, and your spell is lost\.
+     matchre TARGET_RELEASE ^Your secondary spell pattern dissipates because your target is dead, but the main spell remains intact\.
+     matchre TARGET_RELEASE ^Your target pattern dissipates because .* is dead\, but the main spell remains intact\.
+     matchre TARGET_RELEASE ^Your pattern dissipates with the loss of your target\.
+     matchre TARGET_CAST ^You feel fully prepared to cast your spell\.
+     matchre TARGET_CAST ^Your target pattern has finished forming around the area\.
+     matchre TARGET_CAST ^The formation of the target pattern around .* has completed\.
+     matchre TARGET_CAST ^Your formation of a targeting pattern around .* has completed\.
+     matchwait
+TARGET_CAST:
+     delay 0.0001
+     var LOCATION TARGET_CAST_1
+     TARGET_CAST_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre STUNNED ^You are still stunned
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+	 matchre CALMED ^Strangely\, you don\'t feel like fighting right now\.
+     matchre TARGET_RELEASE ^You don't have a spell prepared\!
+     matchre TARGET_RELEASE ^.* is already dead, so that's a bit pointless\.
+     matchre TARGET_RELEASE ^Your secondary spell pattern dissipates because your target is dead, but the main spell remains intact\.
+     matchre TARGET_RELEASE ^Your target pattern dissipates because the .* is dead\, but the main spell remains intact\.
+     matchre RETURN ^Roundtime\:?|^\[Roundtime\:?|^\(Roundtime\:?
+     matchre RETURN ^Focus the power of justice on whom\?
+     matchre RETURN ^You gesture
+     send cast
+     matchwait
+TARGET_RELEASE:
+     delay 0.0001
+     gosub RELEASE
+     return
+
+#### HUNT SUB
+HUNT:
+     delay 0.0001
+     delay 0.0001
+     var LOCATION HUNT_1
+     HUNT_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre STUNNED ^You are still stunned
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+     matchre RETURN ^You find yourself unable to hunt in this area\.
+     matchre RETURN ^You take note of all the tracks in the area\, so that you can hunt anything nearby down\.
+     send hunt
+     matchwait
+
+##### CRITTER APPRAISAL SUB
+APPRAISE_CRITTER:
+     delay 0.0001
+     var critter NULL
+     if matchre("$monsterlist" , "$KnownMonsters") then var critter $0
+     if ("%critter" = "NULL") then return
+     gosub APPRAISE %critter quick
+     return
+
+##### APPRAISAL SUB
+APPRAISE:
+     delay 0.0001
+     var appraise $0
+     var LOCATION APPRAISE_1
+     APPRAISE_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre STUNNED ^You are still stunned
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+     matchre RETURN ^It's dead\!
+     matchre RETURN ^Appraise what\?
+     matchre RETURN ^What were you referring to\?
+     matchre RETURN ^You cannot appraise that when you are in combat\!
+     matchre RETURN ^You can't determine anything about this creature\.
+     matchre RETURN ^It's hard to appraise the .* when it's inside something\.
+     matchre RETURN ^Appraise what\?  Type APPRAISE HELP for more information\.
+     matchre RETURN ^You ponder that\, briefly\, but decide to let it go for now\.
+     matchre RETURN ^Roundtime\:?|^\[Roundtime\:?|^\(Roundtime\:?
+     send appraise %appraise
+     matchwait 15
+     put #echo >$Log Crimson $datetime *** MISSING MATCH IN APPRAISE! (utility.inc) ***
+     put #echo >$Log Crimson $datetime Appraise = %appraise
+     put #log $datetime MISSING MATCH IN APPRAISE! (utility.inc)
+     return
+
+#### HIDING SUB
+HIDE:
+     delay 0.0001
+     var hideCounter 0
+     var LOCATION HIDE_1
+     HIDE_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre STUNNED ^You are still stunned
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+     matchre HIDE_INCREMENT ^.* notices your attempt to hide\!
+     matchre HIDE_INCREMENT ^.* reveals you, ruining your hiding attempt\!
+     matchre HIDE_INCREMENT ^.* discovers you, ruining your hiding place\!
+     matchre RETURN ^You slip into a hiding
+     matchre RETURN ^You melt into the background
+     matchre RETURN ^Eh\?  But you're already hidden\!
+     matchre RETURN ^You blend in with your surroundings
+     send hide
+     matchwait
+HIDE_INCREMENT:
+     delay 0.0001
+     math hideCounter add 1
+     if %hideCounter > 1 then return
+     goto HIDE_1
+
+#### HIDING SUB
+AMBUSH.STALK.FAIL:
+	delay 0.0001
+	math hideCounter add 1
+	if %hideCounter > 1 then return
+	goto STALK_1
+STALK:
+	delay 0.0001
+	var hideCounter 0
+	var LOCATION STALK_1
+	STALK_1:
+     if (%Circle < 50) then put hide
+     pause 0.3
+     pause 0.1
+     pause 0.1
+     pause 0.1
+     if (($hidden = 0) && (%Circle < 50)) then
+     {
+          send hide
+          pause $roundtime
+          pause 0.5
+     }
+     pause 0.1
+     pause 0.001
+     matchre STALK_1 ^\.\.\.wait|^Sorry\,
+     matchre RETURN Stalk what|Face what|^There is nothing else to face|trying to stalk
+     matchre AMBUSH.STALK.FAIL reveals|try being out of sight|discovers you|^You think|^You fail|^Stalking is an inherently
+     matchre RETURN ^You move into position|^You are already stalking|^You quickly slip|^You're already stalking
+     send stalk
+     matchwait 7
+	 RETURN
+	 
+#### UNHIDING SUB
+UNHIDE:
+     delay 0.0001
+     var LOCATION UNHIDE_1
+     UNHIDE_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre STUNNED ^You are still stunned
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+     matchre RETURN ^But you are not hidden\!
+     matchre RETURN ^You come out of hiding\.
+     send unhide
+     matchwait
+
+##### STANDING SUB
+STAND:
+     delay 0.0001
+     var LOCATION STAND_1
+     STAND_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre WAIT ^Roundtime\:?|^\[Roundtime\:?|^\(Roundtime\:?
+     matchre WAIT ^The weight of all your possessions prevents you from standing\.
+     matchre WAIT ^You are overburdened and cannot manage to stand\.
+     matchre STUNNED ^You are still stunned
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+     matchre STAND_RETURN ^You stand (?:back )?up\.
+     matchre STAND_RETURN ^You are already standing\.
+     send stand
+     matchwait
+     STAND_RETURN:
+     delay 0.1
+     delay 0.1
+     if (!$standing) then goto STAND
+     return
+
+#### UNLOAD RANGED SUB
+UNLOAD:
+     delay 0.0001
+     var LOCATION UNLOAD_1
+     UNLOAD_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre STUNNED ^You are still stunned
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+     matchre RETURN ^You unload .*\.
+     matchre RETURN ^But your .* isn't loaded\!
+     matchre RETURN ^You don't have a ranged weapon to unload\.
+     matchre RETURN ^You must be holding the weapon to do that\.
+     send unload
+     matchwait
+
+#### SECONDARY GET FAILSAFE
+GET_IT1:
+     delay 0.0001
+     var LOCATION GET_IT2
+     GET_IT2:
+     matchre WAIT ^\.\.\.wait|^Sorry\,|^Please wait\.
+     matchre WAIT ^You struggle with .* great weight but can't quite lift it\!
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre STUNNED ^You are still stunned
+     matchre HOLD_1 ^But that is already in your inventory\.
+     matchre RETURN ^Get what\?
+     matchre RETURN ^You carefully remove .* from the bundle\.
+     matchre RETURN ^I could not find what you were referring to\.
+     matchre RETURN ^What were you referring to\?
+     matchre RETURN ^You (?:get|grab|pick|pull|push|twist|slip|deftly|slide|sling|carefully|are) .*(?:\.|\!|\?)?
+     matchre RETURN ^As best it can\, .* moves in your direction\.
+     send get %item
+     matchwait 15
+     put #echo >Log Crimson  *** MISSING MATCH IN GET_IT2! (ubercombat.cmd) ***
+     put #echo >Log Crimson  Get = %item
+     put #log $datetime MISSING MATCH IN GET (ubercombat.cmd)
+     return
+
+#### WEAPON MANAGEMENT SUBS
+WIELD_PAUSE:
+     pause 4
+     goto WIELD_1
+WIELD:
+     delay 0.0001
+     var item $0
+     if (!$standing) then gosub STAND
+     if ("%item" = "NULL") then return
+     var LOCATION WIELD_1
+     WIELD_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,|^Please wait\.
+     matchre STUNNED ^You are still stunned
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+     matchre WIELD_PAUSE ^You are too exhausted to be able to pick that up\!
+     matchre GET_IT1 ^You find it difficult to wield
+     matchre WIELD_RETURN ^You (?:get|sling|draw|untie|put|drape|slide|slip|deftly|attach|work|strap|hang|are already) .*(?:\.|\!|\?)?
+     matchre WIELD_RETURN ^You're already holding
+     matchre REMOVE_WEAPON ^You can only wield
+     matchre REMOVE_WEAPON ^You're wearing
+     matchre REMOVE_WEAPON ^What were you referring to\?
+     matchre REMOVE_WEAPON ^\s*Wield what\?
+     send wield my %item
+     matchwait
+WIELD_RETURN:
+	pause 0.001
+	if matchre("$righthandnoun $lefthandnoun", "fan") then gosub PUT open my fan
+	return
+REMOVE_WEAPON:
+     delay 0.0001
+     var LOCATION REMOVE_WEAPON_1
+     REMOVE_WEAPON_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre STUNNED ^You are still stunned
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+     matchre RETURN ^Remove what\?
+     matchre RETURN ^What were you referring to\?
+     matchre RETURN ^You remove .* from your belt\.
+     matchre RETURN ^You sling .* off from over your shoulder\.
+     send remove %item
+     matchwait
+SHEATH:
+     delay 0.0001
+     var item $0
+     var LOCATION SHEATH_1
+     SHEATH_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre STUNNED ^You are still stunned
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+     matchre RETURN ^You slip
+     matchre RETURN ^You sheathe
+     matchre RETURN ^Sheathe what\?
+     matchre RETURN ^Sheathe your.*where\?
+	 matchre SWAPBOW ^You should unload the .* first\.
+     matchre RETURN ^A .* is too long to fit in .*\.
+     matchre RETURN ^The .* is too long to fit in .*\.
+     send sheath %item
+     matchwait
+SWAPBOW:
+	delay 0.0001
+	var LOCATION SWAP_1
+	SWAP_1:
+	 matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre STUNNED ^You are still stunned
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+	 matchre SWAPBOW You move a .* to your left hand.
+	 matchre SHEATH You move a .* to your right hand.
+	 send swap
+	 matchwait
+#### PUT SUB
+PUT:
+     delay 0.0001
+     var putaction $0
+     var LOCATION PUT_1
+     PUT_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,|^Please wait\.
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre STUNNED ^You are still stunned
+     matchre PUT_STOW ^You need a free hand|^Free one of your hands
+     matchre PUT_STAND ^You should stand up first\.|^Maybe you should stand up\.
+     matchre WAIT ^\[Enter your command again if you want to\.\]
+     matchre RETURN_CLEAR You'?r?e? (?:hand|slip|put|get|.* to|can't|quickly|switch|untie|sheathe|strap|slide|desire|raise|sling|pull|drum|trace|wear|tap|recall|press|hang|gesture|push|move|whisper|lean|tilt|cannot|mind|drop|drape|loosen|work|lob|spread|not|fill|will|now|slowly|quickly|spin|filter|need|shouldn't|pour|blow|twist|struggle|place|knock|toss|set|add|search|circle|fake|weave|shove|try|must|wave|sit|fail|turn|already|can\'t|glance|bend|swing|chop|bash|dodge|feint|draw|parry|carefully|quietly|sense|begin|rub|sprinkle|stop|combine|take|decide|insert|lift|retreat|load|fumble|exhale|allow|have|are|wring|icesteel|scan|vigorously|adjust|bundle|ask|form|lose|remove|accept|pick|silently|realize|open|grab|fade|offer|aren't|kneel|don\'t|close|let|find|attempt|tie|roll|attach|feel|read|reach|gingerly|come|corruption|count|secure|unload|remain) .*(?:\.|\!|\?)?
+     matchre RETURN_CLEAR ^Brother Durantine|^Durantine|^Mags|^Ylono|^Malik|^Kilam|^Ragge|^Randal|^Catrox|^Kamze|^Unspiek|^Wyla|^Ladar|^Dagul|^Granzer|^Diwitt|(?:An|The|A) attendant|^The clerk|A Dwarven|^.*He says\,
+     matchre RETURN_CLEAR ^The (?: clerk|teller|attendant|mortar|pestle|tongs|bowl|riffler|hammer|gem|book|page|lockpick|sconce|voice|waters) .*(?:\.|\!|\?)?
+     matchre RETURN_CLEAR ^Roundtime\:?|^\[Roundtime\:?|^\(Roundtime\:?|^\[Roundtime|^Roundtime
+     matchre RETURN_CLEAR \[Roundtime 
+     matchre RETURN_CLEAR \[You're
+     matchre RETURN_CLEAR too injured
+     matchre RETURN_CLEAR ^.*\[Praying for \d+ sec\.\]
+     matchre RETURN_CLEAR ^You cannot do that while engaged\!
+     matchre RETURN_CLEAR ^I could not find
+     matchre RETURN_CLEAR ^Please rephrase that command\.
+     matchre RETURN_CLEAR ^Perhaps you should
+     matchre RETURN_CLEAR ^That (?:is|has) already
+     matchre RETURN_CLEAR ^The .* is
+     matchre RETURN_CLEAR ^But (?:that|you|the)
+     matchre RETURN_CLEAR ^What (?:were you|is it)
+     matchre RETURN_CLEAR ^There (?:is|is not|isn't)
+     matchre RETURN_CLEAR ^In the name of love\?
+     matchre RETURN_CLEAR ^That (?:cannot|area|can't|won't)
+     matchre RETURN_CLEAR ^With a (?:keen|practiced)
+     matchre RETURN_CLEAR ^.* what\?
+     matchre RETURN_CLEAR ^I don\'t
+     matchre RETURN_CLEAR ^Some (?:polished|people|tarnished|.* zills)
+     matchre RETURN_CLEAR ^(\S+) has accepted
+     matchre RETURN_CLEAR ^You sense that you are as pure of spirit as you can be\, and you are ready for whatever rituals might face you\.
+     matchre RETURN_CLEAR ^Subservient type|^The shadows|^Close examination|^Try though
+     matchre RETURN_CLEAR ^USAGE\:|^Using your
+     matchre RETURN_CLEAR ^Smoking commands are
+     matchre RETURN_CLEAR ^Allows a Moon Mage
+     matchre RETURN_CLEAR ^A (?:slit|pair|shadow) .*(?:\.|\!|\?)?
+     matchre RETURN_CLEAR ^Your (?:actions|dance|nerves) .*(?:\.|\!|\?)?
+     matchre RETURN_CLEAR ^You.*analyze
+     matchre RETURN_CLEAR ^Having no further use for .*\, you discard it\.
+     matchre RETURN_CLEAR ^You don't have a .* coin on you\!\s*The .* spider looks at you in forlorn disappointment\.
+     matchre RETURN_CLEAR ^The .* spider turns away\, looking like it's not hungry for what you're offering\.
+     matchre RETURN_CLEAR ^After a moment\, .*\.
+     matchre RETURN_CLEAR ^.* (?:is|are) not in need of cleaning\.
+     matchre RETURN_CLEAR ^Quietly touching your lips with the tips of your fingers as you kneel\, you make the Cleric's sign with your hand\.
+     matchre RETURN_CLEAR ^The .* is not damaged enough to warrant repair\.
+     matchre RETURN_CLEAR \[Type INVENTORY HELP for more options\]
+     matchre RETURN_CLEAR ^A vortex|^A chance for
+     matchre RETURN_CLEAR ^In a flash
+     matchre RETURN_CLEAR ^An aftershock
+     matchre RETURN_CLEAR ^In the .* you see .*\.
+     matchre RETURN_CLEAR .* (?:Dokoras|Kronars|Lirums)
+     matchre RETURN_CLEAR ^That is closed\.
+     matchre RETURN_CLEAR ^This spell cannot be targeted\.
+     matchre RETURN_CLEAR ^You cannot figure out how to do that\.
+     matchre RETURN_CLEAR ^You will now store .* in your .*\.
+     matchre RETURN_CLEAR ^That tool does not seem suitable for that task\.
+     matchre RETURN_CLEAR ^There isn't any more room in .* for that\.
+     matchre RETURN_CLEAR ^\[Ingredients can be added by using ASSEMBLE Ingredient1 WITH Ingredient2\]
+     matchre RETURN_CLEAR ^\s*LINK ALL CANCEL\s*\- Breaks all links
+     matchre RETURN_CLEAR ^This ritual may only be performed on a corpse\.
+     matchre RETURN_CLEAR ^There is nothing else to face\!
+     matchre RETURN_CLEAR ^Stalking is an inherently stealthy endeavor\, try being out of sight\.
+     matchre RETURN_CLEAR ^You're already stalking
+     matchre RETURN_CLEAR ^There aren't any .*\.
+     matchre RETURN_CLEAR ^You don't think you have enough focus to do that\.
+     matchre RETURN_CLEAR ^You have no idea how to cast that spell\.
+     matchre RETURN_CLEAR ^An offer
+     matchre RETURN_CLEAR ^Tie it off when it's empty\?
+     matchre RETURN_CLEAR ^Obvious (?:exits|paths)
+     matchre RETURN_CLEAR ^But the merchant can't see you|are invisible
+     matchre RETURN_CLEAR Page|^As the world|^Obvious|^A ravenous energy
+     matchre RETURN_CLEAR ^In the|^The attendant|^That is already open\.|^Your inner
+     matchre RETURN_CLEAR ^(\S+) hands you|^Searching methodically|^But you haven\'t prepared a symbiosis\!
+     matchre RETURN_CLEAR ^Illustrations of complex\,|^It is labeled|^Your nerves
+     matchre RETURN_CLEAR ^The lockpick|^Doing that|is not required to continue crafting
+     send %putaction
+     matchwait 15
+     put #echo >Log Crimson *** MISSING MATCH IN PUT! (%scriptname.cmd) ***
+     put #echo >Log Crimson Command = %putaction
+     put #log $datetime MISSING MATCH IN PUT! Command = %putaction (%scriptname.cmd)
+     return
+PUT_STOW:
+     delay 0.0001
+     gosub EMPTY_HANDS
+     goto PUT_1
+#### HOLD SUB
+HOLD:
+     delay 0.0001
+     var get $0
+     var LOCATION HOLD_1
+     HOLD_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,|^Please wait\.
+     matchre WAIT ^You struggle with .* great weight but can't quite lift it\!
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre STUNNED ^You are still stunned
+     matchre RETURN You'?r?e? (?:hand|slip|put|get|.* to|can't|quickly|switch|untie|sheathe|strap|slide|desire|raise|sling|pull|drum|trace|wear|tap|recall|press|hang|gesture|push|move|whisper|lean|tilt|cannot|mind|drop|drape|loosen|work|lob|spread|not|fill|will|now|slowly|quickly|spin|filter|need|shouldn't|pour|blow|twist|struggle|place|knock|toss|set|add|search|circle|fake|weave|shove|try|must|wave|sit|fail|turn|already|can\'t|glance|bend|swing|chop|bash|dodge|feint|draw|parry|carefully|quietly|sense|begin|rub|sprinkle|stop|combine|take|decide|insert|lift|retreat|load|fumble|exhale|allow|have|are|wring|icesteel|scan|vigorously|adjust|bundle|ask|form|lose|remove|accept|pick|silently|realize|open|grab|fade|offer|aren't|kneel|don\'t|close|let|find|attempt|tie|roll|attach|feel|read|reach|gingerly|come|corruption|count|secure|unload|remain) .*(?:\.|\!|\?)?
+     matchre RETURN ^Get what\?
+     matchre RETURN ^Hold hands with whom\?
+     matchre RETURN ^What were you referring to\?
+     matchre RETURN ^I could not find what you were referring to\.
+     send hold %get
+     matchwait 15
+     put #echo >Log Crimson  *** MISSING MATCH IN HOLD! (duskruin.cmd) ***
+     put #echo >Log Crimson  Get = %get
+     put #log $datetime MISSING MATCH IN HOLD (duskruin.cmd)
+     return
+#### GET SUB
+GET:
+     delay 0.0001
+     var get $0
+     var LOCATION GET_1
+     GET_1:
+     matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre WAIT ^You struggle with .* great weight but can't quite lift it\!
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre STUNNED ^You are still stunned
+     matchre HOLD_1 ^But that is already in your inventory\.
+     # matchre RETURN ^\s*You get .*\.
+     matchre RETURN ^You pick up .*\.
+     matchre RETURN ^You carefully remove .* from the bundle\.
+     matchre RETURN ^You are already holding that\.
+     matchre RETURN ^Get what\?
+     matchre RETURN ^I could not find what you were referring to\.
+     matchre RETURN ^What were you referring to\?
+     matchre RETURN ^You (?:get|grab) .*(?:\.|\!|\?)
+     matchre RETURN ^As best it can\, .* moves in your direction\.
+     send get %get
+     matchwait 15
+     put #echo >$Log Crimson $datetime *** MISSING MATCH IN GET! (duskruin.cmd) ***
+     put #echo >$Log Crimson $datetime Get = %get
+     put #log $datetime MISSING MATCH IN GET (utility.inc)
+     return
+STOWING:
+     delay 0.0001
+     var LOCATION STOWING
+     if "$righthand" = "vine" then put drop vine
+     if "$lefthand" = "vine" then put drop vine
+     if "$righthandnoun" = "rope" then put coil my rope
+     if "$righthand" = "bundle" || "$lefthand" = "bundle" then put wear bund;drop bun
+     #if matchre("$righthandnoun","(crossbow|bow|short bow)") then gosub unload
+     if matchre("$righthandnoun","(block|granite block)") then put drop block
+     if matchre("$lefthandnoun","(block|granite block)") then put drop block
+     if matchre("$righthand","(partisan|shield|buckler|lumpy bundle|halberd|staff|longbow|khuj)") then put wear my $1
+     if matchre("$lefthand","(partisan|shield|buckler|lumpy bundle|halberd|staff|longbow|khuj)") then put wear my $1
+     pause 0.1
+     pause 0.1
+     if matchre("$lefthand","(longbow|khuj)") then gosub stow my $1 in my %SHEATH
+     if "$righthand" != "Empty" then GOSUB STOW right
+     if "$lefthand" != "Empty" then GOSUB STOW left
+     return
+STOW:
+     var LOCATION STOW1
+     var todo $0
+STOW1:
+     delay 0.0001
+     matchre WAIT ^\.\.\.wait|^Sorry\,
+     matchre IMMOBILE ^You don't seem to be able to move to do that
+     matchre WEBBED ^You can't do that while entangled in a web
+     matchre STUNNED ^You are still stunned
+     matchre STOW2 not designed to carry anything|any more room|no matter how you arrange|^That's too heavy|too thick|too long|too wide
+     matchre STOW2 ^But that's closed|I can't find your container|^You can't|Weirdly|What were you
+     matchre RETURN ^Wear what\?|^Stow what\?  Type 'STOW HELP' for details\.
+     matchre RETURN ^You put
+     matchre RETURN ^You open
+     matchre RETURN needs to be
+     matchre RETURN ^You stop as you realize
+     matchre RETURN ^But that is already in your inventory\.
+     matchre RETURN ^That can't be picked up
+     matchre LOCATION.unload ^You should unload the
+     matchre LOCATION.unload ^You need to unload the
+     put stow %todo
+     matchwait 15
+     put #echo >$Log Crimson $datetime *** MISSING MATCH IN STOW! (base.inc) ***
+     put #echo >$Log Crimson $datetime Stow = %todo
+     put #log $datetime MISSING MATCH IN STOW (base.inc)
+STOW2:
+     delay 0.0001
+	pause 0.2
+     if ("%todo" = "right") then var todo $righthandnoun
+     if ("%todo" = "left") then var todo $lefthandnoun
+     var LOCATION STOW2
+     matchre RETURN ^Wear what\?|^Stow what\?
+     matchre RETURN ^You put
+     matchre RETURN ^But that is already in your inventory\.
+     matchre STOW3 any more room|no matter how you arrange|^That's too heavy|too thick|too long|too wide|not designed to carry anything
+     matchre STOW3 ^But that's closed|I can't find your container|^You can't|Weirdly|What were you
+     matchre LOCATION.unload ^You should unload the
+     matchre LOCATION.unload ^You need to unload the
+     put put %todo in my %SECOND.BAG
+     matchwait 15
+     put #echo >$Log Crimson $datetime *** MISSING MATCH IN STOW2! (base.inc) ***
+     put #echo >$Log Crimson $datetime Stow = %todo
+     put #log $datetime MISSING MATCH IN STOW2 (base.inc)
+	 matchwait 15
+STOW3:
+     delay 0.0001
+	 pause 0.2
+     var LOCATION STOW3
+     matchre RETURN ^Wear what\?|^Stow what\?
+     matchre RETURN ^You put
+     matchre RETURN ^But that is already in your inventory\.
+     matchre RETURN any more room|no matter how you arrange|^That's too heavy|too thick|too long|too wide|not designed to carry anything
+     matchre RETURN ^But that's closed|I can't find your container|^You can't|Weirdly|What were you
+     matchre LOCATION.unload ^You should unload the
+     matchre LOCATION.unload ^You need to unload the
+     put put %todo in my %LARGE.BAG
+     matchwait 15
+     put #echo >$Log Crimson $datetime *** MISSING MATCH IN STOW2! (base.inc) ***
+     put #echo >$Log Crimson $datetime Stow = %todo
+     put #log $datetime MISSING MATCH IN STOW2 (base.inc)
+OPEN.THING:
+     put open %BOX.CONTAINER
+     put open %DEFAULT.CONTAINER
+     pause 0.2
+     goto STOWING
+REM.WEAR:
+     put rem bund
+     put drop bund
+     wait
+     pause 0.5
+     goto WEAR1     
+################################
+# MOVEMENT ROUTINES
+################################
+MOVE:
+     delay 0.0001
+     var Direction $0
+     var movefailCounter 0
+MOVE_RESUME:
+     matchre MOVE_RESUME ^\.\.\.wait|^Sorry\,
+     matchre MOVE_RESUME ^You make your way up the .*\.\s*Partway up\, you make the mistake of looking down\.\s*Struck by vertigo\, you cling to the .* for a few moments\, then slowly climb back down\.
+     matchre MOVE_RESUME ^You pick your way up the .*\, but reach a point where your footing is questionable\.\s*Reluctantly\, you climb back down\.
+     matchre MOVE_RESUME ^You approach the .*\, but the steepness is intimidating\.
+     matchre MOVE_RESUME ^You struggle
+     matchre MOVE_RESUME ^You blunder
+     matchre MOVE_RESUME ^You slap
+     matchre MOVE_RESUME ^You work
+     matchre MOVE_PAUSE ^You are still stunned\.
+     matchre MOVE_RESUME ^You don't seem to be able to
+     matchre MOVE_RESUME make much headway
+     matchre MOVE_RESUME ^Noticing your attempt
+     matchre MOVE_RESUME ^You flounder around in the water\.
+     matchre MOVE_RETREAT ^You are engaged to .*\!
+     matchre MOVE_RETREAT ^You can't do that while engaged\!
+     matchre MOVE_STAND ^You start up the .*\, but slip after a few feet and fall to the ground\!\s*You are unharmed but feel foolish\.
+     matchre MOVE_STAND ^Running heedlessly over the rough terrain\, you trip over an exposed root and land face first in the dirt\.
+     matchre MOVE_STAND ^You can't do that while lying down\.
+     matchre MOVE_STAND ^You can't do that while sitting\!
+     matchre MOVE_STAND ^You must be standing to do that\.
+     matchre MOVE_STAND ^You can't do that while kneeling\!
+     matchre MOVE_STAND ^You must stand first\.
+     matchre MOVE_STAND ^Stand up first.
+     matchre MOVE_DIG ^You make no progress in the mud \-\- mostly just shifting of your weight from one side to the other\.
+     matchre MOVE_DIG ^You find yourself stuck in the mud\, unable to move much at all after your pathetic attempts\.
+     matchre MOVE_DIG ^You struggle forward\, managing a few steps before ultimately falling short of your goal\.
+     matchre MOVE_DIG ^Like a blind\, lame duck\, you wallow in the mud in a feeble attempt at forward motion\.
+     matchre MOVE_DIG ^The mud holds you tightly\, preventing you from making much headway\.
+     matchre MOVE_DIG ^You fall into the mud with a loud \*SPLUT\*\.
+     matchre MOVE_FAILED ^I could not find what you were referring to\.
+     matchre MOVE_FAILED ^What were you referring to\?
+     matchre MOVE_RETURN ^It's pitch dark
+     matchre MOVE_RETURN2 ^You can't
+     matchre MOVE_RETURN ^Obvious
+     send %Direction
+     matchwait
+MOVE_PAUSE:
+     pause
+     goto MOVE_RESUME
+MOVE_STAND:
+     pause 0.1
+     matchre MOVE_STAND ^\.\.\.wait|^Sorry\,
+     matchre MOVE_STAND ^You are overburdened and cannot manage to stand\.
+     matchre MOVE_STAND ^The weight
+     matchre MOVE_STAND ^You try
+     matchre MOVE_RETREAT ^You are already standing\.
+     matchre MOVE_RETREAT ^You stand(?:\s*back)? up\.
+     matchre MOVE_RETREAT ^You stand up\.
+     send stand
+     matchwait
+MOVE_RETREAT:
+     pause 0.1
+     matchre MOVE_RETREAT ^\.\.\.wait|^Sorry\,
+     matchre MOVE_RETREAT ^You retreat back to pole range\.
+     matchre MOVE_RETREAT ^You try to back away
+     matchre MOVE_STAND ^You must stand first\.
+     matchre MOVE_RESUME ^You retreat from combat\.
+     matchre MOVE_RESUME ^You are already as far away as you can get\!
+     send retreat
+     matchwait
+MOVE_DIG:
+     pause 0.1
+     matchre MOVE_DIG ^\.\.\.wait|^Sorry\,
+     matchre MOVE_DIG ^You struggle to dig off the thick mud caked around your legs\.
+     matchre MOVE_STAND ^You manage to dig enough mud away from your legs to assist your movements\.
+     matchre MOVE_DIG_STAND ^Maybe you can reach better that way\, but you'll need to stand up for that to really do you any good\.
+     matchre MOVE_RESUME ^You will have to kneel
+     send dig
+     matchwait
+MOVE_DIG_STAND:
+     pause 0.1
+     matchre MOVE_DIG_STAND ^\.\.\.wait|^Sorry\,
+     matchre MOVE_DIG_STAND ^The weight
+     matchre MOVE_DIG_STAND ^You try
+     matchre MOVE_DIG_STAND ^You are overburdened and cannot manage to stand\.
+     matchre MOVE_DIG ^You stand(?:\s*back)? up\.
+     matchre MOVE_DIG ^You are already standing\.
+     send stand
+     matchwait
+MOVE_FAILED:
+     evalmath movefailCounter (movefailCounter + 1)
+     if (%movefailCounter > 3) then goto MOVE_FAIL_BAIL
+     pause 0.5
+     goto MOVE_RESUME
+MOVE_FAIL_BAIL:
+     put #echo
+     put #echo >$Log Crimson *** MOVE FAILED. ***
+     put #echo Crimson *** MOVE FAILED.  ***
+     put #echo
+MOVE_RETURN2:
+     send look
+MOVE_RETURN:
+     return
+####################################################################################
+AUTOMOVE:
+     delay 0.0001
+     var Destination $0
+     var automovefailCounter 0
+     if (!$standing) then gosub AUTOMOVE_STAND
+     if ("$roomid" = "%Destination") then return
+AUTOMOVE_GO:
+     delay 0.0001
+     matchre AUTOMOVE_FAILED ^(?:AUTOMAPPER )?MOVE(?:MENT)? FAILED
+     matchre AUTOMOVE_RETURN ^YOU HAVE ARRIVED(?:\!)?
+     matchre AUTOMOVE_RETURN ^SHOP CLOSED(?:\!)?
+     matchre AUTOMOVE_FAIL_BAIL ^DESTINATION NOT FOUND
+     put #goto %Destination
+     matchwait
+AUTOMOVE_STAND:
+     pause 0.1
+     matchre AUTOMOVE_STAND ^\.\.\.wait|^Sorry\,
+     matchre AUTOMOVE_STAND ^Roundtime\:?|^\[Roundtime\:?|^\(Roundtime\:?
+     matchre AUTOMOVE_STAND ^The weight of all your possessions prevents you from standing\.
+     matchre AUTOMOVE_STAND ^You are still stunned\.
+     matchre AUTOMOVE_RETURN ^You stand(?:\s*back)? up\.
+     matchre AUTOMOVE_RETURN ^You are already standing\.
+     send stand
+     matchwait
+AUTOMOVE_FAILED:
+     evalmath automovefailCounter (automovefailCounter + 1)
+     if (%automovefailCounter > 5) then goto AUTOMOVE_FAIL_BAIL
+     send #mapper reset
+     pause 0.5
+     pause 0.1
+     goto AUTOMOVE_GO
+AUTOMOVE_FAIL_BAIL:
+     put #echo
+     put #echo >$Log Crimson *** AUTOMOVE FAILED. ***
+     put #echo >$Log Destination: %Destination
+     put #echo Crimson *** AUTOMOVE FAILED.  ***
+     put #echo Crimson Destination: %Destination
+     put #echo
+     exit
+AUTOMOVE_RETURN:
+     return
+####################################################################################
+MOVE_RANDOM:
+     delay 0.0001
+     random 1 8
+     if (%r = 1) && (!$north) then goto MOVE_RANDOM
+     if (%r = 2) && (!$northeast) then goto MOVE_RANDOM
+     if (%r = 3) && (!$east) then goto MOVE_RANDOM
+     if (%r = 4) && (!$southeast) then goto MOVE_RANDOM
+     if (%r = 5) && (!$south) then goto MOVE_RANDOM
+     if (%r = 6) && (!$southwest) then goto MOVE_RANDOM
+     if (%r = 7) && (!$west) then goto MOVE_RANDOM
+     if (%r = 8) && (!$northwest) then goto MOVE_RANDOM
+     #
+     if (%r = 1) then var Direction north
+     if (%r = 2) then var Direction northeast
+     if (%r = 3) then var Direction east
+     if (%r = 4) then var Direction southeast
+     if (%r = 5) then var Direction south
+     if (%r = 6) then var Direction southwest
+     if (%r = 7) then var Direction west
+     if (%r = 8) then var Direction northwest
+     #
+     if (%r = 1) then var Reverse.Direction south
+     if (%r = 2) then var Reverse.Direction southwest
+     if (%r = 3) then var Reverse.Direction west
+     if (%r = 4) then var Reverse.Direction northwest
+     if (%r = 5) then var Reverse.Direction north
+     if (%r = 6) then var Reverse.Direction northeast
+     if (%r = 7) then var Reverse.Direction east
+     if (%r = 8) then var Reverse.Direction southeast
+     #
+     var Exits 0
+     if ($north) then math Exits add 1
+     if ($northeast) then math Exits add 1
+     if ($east) then math Exits add 1
+     if ($southeast) then math Exits add 1
+     if ($south) then math Exits add 1
+     if ($southwest) then math Exits add 1
+     if ($west) then math Exits add 1
+     if ($northwest) then math Exits add 1
+     #
+     # don't move "back" on a path unless we hit a dead end
+     if (%Exits > 1) && ("%Last.Direction" = "%Reverse.Direction") then goto MOVE_RANDOM
+     #
+     var Last.Direction %Direction
+     gosub MOVE_RESUME
+     pause 0.5
+     pause 0.6
+     return
+moveRandomDirection:
+     random 1 8
+     if (%r = 1) then goto 1
+     if (%r = 2) then goto 2
+     if (%r = 3) then goto 3
+     if (%r = 4) then goto 4
+     if (%r = 5) then goto 5
+     if (%r = 6) then goto 6
+     if (%r = 7) then goto 7
+     if (%r = 8) then goto 8
+1:
+     if $north then
+          {
+               gosub MOVE north
+               return
+          }
+2:          
+     if $northwest then
+          {
+               gosub MOVE northwest
+               return
+          }
+3:
+     if $northeast then
+          {
+               gosub MOVE northeast
+               return
+          }
+4:
+     if $southeast then
+          {
+               gosub MOVE southeast
+               return
+          }
+5:
+     if $south then
+          {
+               gosub MOVE south
+               return
+          }
+6:
+     if $west then
+          {
+               gosub MOVE west
+               return
+          }
+7:
+     if $east then
+          {
+               gosub MOVE east
+               return
+          }
+8:
+     if $southwest then
+          {
+               gosub MOVE southwest
+               return
+          }
+9:          
+     if $out then
+          {
+               gosub MOVE out
+               return
+          }
+10:
+     if $up then
+          {
+               gosub MOVE up
+               return
+          }
+     if $down then
+          {
+               gosub MOVE down
+               return
+          }
+     if matchre("$roomobjs","(arch|door|gate|hole|hatch|trapdoor)") then 
+          {
+               gosub MOVE go $1
+               return
+          }
+echo no random direction possible? looking to attempt to reset room exit vars
+#might need a counter here to prevent infinite loops
+put look
+waitforre ^Obvious|fog|see
+pause 0.5
+goto moveRandomDirection
+
+#### CATCH AND RETRY SUBS
+WAIT:
+     delay 0.0001
+     pause 0.1
+     if (!$standing) then gosub STAND
+     goto %LOCATION
+WEBBED:
+     delay 0.0001
+     if ($webbed) then waiteval (!$webbed)
+     if (!$standing) then gosub STAND
+     goto %LOCATION
+IMMOBILE:
+     delay 0.0001
+     if contains("$prompt" , "I") then pause 20
+     if (!$standing) then gosub STAND
+     goto %LOCATION
+STUNNED:
+     delay 0.0001
+     if ($stunned) then waiteval (!$stunned)
+     if (!$standing) then gosub STAND
+     goto %LOCATION
+CALMED:
+     delay 5
+     if ($stunned) then waiteval (!$stunned)
+     if (!$standing) then gosub STAND
+     goto %LOCATION
+#### RETURNS
+RETURN:
+     delay 0.0001
+     RETURN
+RETURN_CLEAR:
+     delay 0.0001
+     put #queue clear
+     pause 0.0001
+     RETURN
+     
+THIEF_BUFF:
+	action instant put #tvar khriPLUNDER 1 when ^Your hand twitches slightly in anticipation as you focus your mind towards relieving others of their hard earned possessions\.
+	action instant put #tvar khriPLUNDER 1 when ^You are under the influence of the Plunder meditation
+	action instant put #tvar khriPLUNDER 0 when ^Your hands feel more clumsy as your intuition on how and when to relieve others of their possessions wanes\.
+	action instant put #tvar khriPLUNDER 0 when ^Your recent use of the Plunder meditation is preoccupying|^You have not recovered from your previous use of the Plunder meditation\.
+     action instant put #tvar khriHASTEN 1 when ^You are under the influence of the Hasten meditation|^Centering your mind\, you allow your practiced discipline to spread throughout your body\, making thought and motion one\.
+     action instant put #tvar khriHASTEN 0 when ^Your concentration fails\, and you feel your body perceptibly slow\.
+     action instant put #tvar khriHASTEN 0 when ^Your recent use of the Hasten meditation is preoccupying|^You have not recovered from your previous use of the Hasten meditation\.
+     action instant put #tvar khriFOCUS 1 when ^With deep breaths\, you recall your training and focus your mind into the most universal of meditations\, improving your overall performance\.
+     action instant put #tvar khriFOCUS 1 when ^You are under the influence of the Focus meditation|^With deep breaths\, you recall your training and focus your mind to hone in on improving your physical dexterity\.
+     action instant put #tvar khriFOCUS 1 when ^You're already using the Focus meditation\.
+     action instant put #tvar khriFOCUS 0 when ^Your focused mind falters\, and you feel downright clumsy by comparison\.
+     action instant put #tvar khriFOCUS 0 when ^Your recent use of the Focus meditation is preoccupying|^You have not recovered from your previous use of the Focus meditation\.
+     action instant put #tvar khriPROWESS 1 when The sensation of believing that your enemies will tremble at the mere thought of you translates from your every movement\.
+     action instant put #tvar khriPROWESS 1 when ^You're already using the Prowess meditation\.
+     action instant put #tvar khriPROWESS 0 when ^You feel your muscles relax as you settle into a less threatening demeanor\.
+     action instant put #tvar khriPROWESS 0 when ^Your recent use of the Prowess meditation is preoccupying|^You have not recovered from your previous use of the Prowess meditation\.
+     action instant put #tvar khriSAFE 1 when ^You are under the influence of the Safe meditation|^With but a quick thought\, your hands steady and your mind gears itself to the purpose of getting into what others want you out of\.
+     action instant put #tvar khriSAFE 0 when ^Your hands no longer feel quite as steady as your grasp on the meditation fails\.
+     action instant put #tvar khriSAFE 0 when ^Your recent use of the Safe meditation|^You have not recovered from your previous use of the Safe meditation\.
+     action instant put #tvar khriDARKEN 1 when ^You are under the influence of the Darken meditation|^Focusing your mind\, you look around yourself to find the subtle differences lurking in the shadows nearby
+     action instant put #tvar khriDARKEN 0 when ^You are unable to maintain your focus on the shadows around you\, and your knowledge of better hiding places subsides\.
+     action instant put #tvar khriDARKEN 0 when ^Your recent use of the Darken meditation|^You have not recovered from your previous use of the Darken meditation\.
+     action instant put #tvar khriDAMPEN 1 when ^Focusing your mind\, you attempt to attune your senses to the paths between shadows\. You quickly feel more comfortable with your ability to navigate terrain unseen\.
+     action instant put #tvar khriDAMPEN 1 when ^You are under the influence of the Dampen meditation|^Focusing your mind\, you attempt to attune your senses to even your most minor movements\.  You quickly feel more comfortable with your ability to control your motions to prevent detection\.
+     action instant put #tvar khriDAMPEN 0 when ^You are unable to maintain your focus on every movement\, and your knowledge of better ways to stay unnoticed in armor subsides\.
+     action instant put #tvar khriDAMPEN 0 when ^Your recent use of the Dampen meditation is preoccupying|^You have not recovered from your previous use of the Dampen meditation\.
+     action instant put #tvar khriSIGHT 1 when ^Darkness is no bar to a trained Thief\. With careful focus\, you adjust your eyes to see in shadow as they do in light\.
+     action instant put #tvar khriSIGHT 1 when ^You're already using the Sight meditation\.
+     action instant put #tvar khriSIGHT 0 when ^Light and shadow are once again thrown into stark contrast as your heightened vision fades\.
+     action instant put #tvar khriSIGHT 0 when ^You have not recovered from your previous use of the Sight meditation\.
+     action instant put #tvar khriCALM 1 when ^Placing all of your worries and concerns aside\, you mentally wall them off where they no longer bother you\. Soon\, your inward calm seems unshakeable\.
+     action instant put #tvar khriCALM 1 when ^You're already using the Calm meditation\.
+     action instant put #tvar khriCALM 0 when ^You attempt to relax your mind from all of its meditative states\.
+     action instant put #tvar khriCALM 0 when ^Your recent use of the Calm meditation|^You have not recovered from your previous use of the Calm meditation\.
+     action instant put #tvar khriSTEADY 1 when ^Willing your body to meet the heightened functionality of your mind\, you feel your motions steady considerably\.
+     action instant put #tvar khriSTEADY 1 when ^With but a moment's focus\, every worry or care becomes trivial\, and you surround yourself with unshakable serenity\.
+     action instant put #tvar khriSTEADY 1 when ^You're already using the Steady meditation\.
+     action instant put #tvar khriSTEADY 0 when ^The steadying influence your mind was exerting on your self fades away as you lose concentration upon it\.
+     action instant put #tvar khriSTEADY 0 when ^Your recent use of the Steady meditation|^You have not recovered from your previous use of the Steady meditation\.
+     action instant put #tvar khriSERENITY 1 when ^With but a moment's focus\, every worry or care becomes trivial\, and you surround yourself with unshakable serenity\.
+     action instant put #tvar khriSERENITY 1 when ^You're already using the Serenity meditation\.|^You are under the influence of the Serenity meditation\.
+     action instant put #tvar khriSERENITY 0 when ^Your unshakable calm dissipates\, leaving the world around you suddenly seeming more chaotic\.
+     action instant put #tvar khriSERENITY 0 when ^Your recent use of the Serenity meditation|^You have not recovered from your previous use of the Serenity meditation\.
+     action instant put #tvar khriFLIGHT 1 when ^Knowing that a dose of paranoia is healthy
+     action instant put #tvar khriFLIGHT 1 when ^You're already using the Flight meditation\.|^You are under the influence of the Flight meditation\.
+     action instant put #tvar khriFLIGHT 0 when ^You feel mentally fatigued as your heightened paranoia ceases to enhance your knowledge of nearby escape routes\.
+     action instant put #tvar khriFLIGHT 0 when ^Your recent use of the Flight meditation|^You have not recovered from your previous use of the Flight meditation\.
+     action instant put #tvar khriSAGACITY 1 when ^You carefully relax your mind through your expert training
+     action instant put #tvar khriSAGACITY 1 when ^You're already using the Sagacity meditation|^You are under the influence of the Sagacity meditation\.
+     action instant put #tvar khriSAGACITY 0 when ^Your strong sense of survival fades
+     action instant put #tvar khriSAGACITY 0 when ^Your recent use of the Sagacity meditation|^You have not recovered from your previous use of the Sagacity meditation\.
+     action instant put #tvar khriGUILE 1 when The sensation of such fluid movement even startles you for a few moments\, as you get accustomed to the mezmerizing rhythm\.
+     action instant put #tvar khriGUILE 1 when ^You're already using the Guile meditation\.|^You are under the influence of the Guile meditation\.
+     action instant put #tvar khriGUILE 0 when ^Your strong sense of survival fades
+     action instant put #tvar khriGUILE 0 when ^Your recent use of the Guile meditation|^You have not recovered from your previous use of the Guile meditation\.
+     action instant put #tvar khriELIMINATE 1 when ^Honing your mind and body to a single purpose\, you prepare to execute the perfect strike\.
+     action instant put #tvar khriELIMINATE 1 when ^You're already using the Eliminate meditation\.|^You are under influence of the Elimination meditation\.
+     action instant put #tvar khriELIMINATE 0 when ^You feel your inner fire cool as you finish practicing the Form of the Eagle\.
+     action instant put #tvar khriELIMINATE 0 when ^Your recent use of the ELIMINATE meditation|^You have not recovered from your previous use of the ELIMINATE meditation\.
+     action instant put #tvar khriSTRIKE 1 when ^You calm your body and mind\, recalling your training on how to seek the vital part of any opponent\. Wrapping yourself in this cool composure\, your eyes quickly become drawn to exposed weaknesses around you\.
+     action instant put #tvar khriSTRIKE 1 when ^You're already using the Strike meditation\.|^You are under the influence of the Strike meditation\.
+     action instant put #tvar khriSTRIKE 0 when ^Your cool composure fades, and with it your heightened
+     action instant put #tvar khriSTRIKE 0 when ^Your recent use of the Strike meditation|^You have not recovered from your previous use of the Strike meditation\.
+     action instant put #tvar khriVANISH 1 when ^Tapping into the well of mental power within\, you focus on a world without your presence in it\. Through determined concentration\, you achieve a limited subversion of reality\, becoming unseen and removed from danger\.
+     action instant put #tvar khriVANISH 1 when ^Tapping into the well of mental power within\, you focus on a world without your presence in it\. Through determined concentration\, you achieve a limited subversion of reality\, becoming unseen and removed from danger\.
+     action instant put #tvar khriVANISH 1 when ^Tapping into the well of mental power within\, you focus on a world without your presence in it\. Through determined concentration\, you achieve a limited subversion of reality\, becoming unseen and removed from danger\.
+     action instant put #tvar khriAVOIDANCE 1 when ^Taking a deep breath\, you focus on making your mind and body one\, your mental discipline trained on quickly noticing\, analyzing\, and evading approaching threats\.
+     action instant put #tvar khriAVOIDANCE 1 when ^You're already using the Avoidance meditation|^You are under the influence of the Avoidance meditation\.
+     action instant put #tvar khriAVOIDANCE 0 when ^Your concentration runs out, and your rapid analysis|^Your recent use of the Avoidance meditation|^You have not recovered from your previous use of the Avoidance meditation\.
+     action instant put #tvar khriELUSION 1 when ^Purging yourself of all distractions and extraneous thoughts\, you allow your mind and body to become one\, becoming preternaturally aware of threats around you and the best ways to defend yourself\.
+     action instant put #tvar khriELUSION 1 when ^You're already using the Elusion meditation\.$|^You are under the influence of the Elusion meditation\.
+     action instant put #tvar khriELUSION 0 when ^You are no longer able to keep your thoughts free from distraction|^Your recent use of the Elusion meditation|^You have not recovered from your previous use of the Elusion meditation\.
+     action instant put #tvar khriINTIMIDATE 1 when ^Briefly shutting your eyes, when you reopen them, you feel much more intimidating
+     action instant put #tvar khriINTIMIDATE 1 when ^You're already using the Intimidate meditation\.|^You are under the influence of the Intimidate meditation\.
+     action instant put #tvar khriINTIMIDATE 0 when ^Something distracts your inner focus and you are no longer as dominant as you were|^Your recent use of the Intimidate meditation|^You have not recovered from your previous use of the Intimidate meditation\.
+     action instant put #tvar khriCREDENCE 1 when ^Deep within yourself you call forth a calming presence that radiates out from you to your surroundings
+     action instant put #tvar khriCREDENCE 1 when ^You're already using the Credence meditation\.|^You are under the influence of the Credence meditation\.
+     action instant put #tvar khriCREDENCE 0 when ^Something disturbs your inner peace and you stop radiating calm|^Your recent use of the Credence meditation|^You have not recovered from your previous use of the Credence meditation\.
+     action instant put #tvar khriFRIGHT 1 when ^After a deep breath, your meditation bears fruit and you feel much more frightening
+     action instant put #tvar khriFRIGHT 1 when ^You are under the influence of the Fright meditation\.|^You're already using the Fright meditation\.
+     action instant put #tvar khriFRIGHT 0 when ^Something shakes your concentration and you lose your enhanced frightfulness|^Your recent use of the Fright meditation|^You have not recovered from your previous use of the Fright meditation\.
+     action instant put #tvar khriENDURE 1 when ^Drawing upon your inner strength, you set yourself to endure and slow your heartbeat
+     action instant put #tvar khriENDURE 1 when ^You're already using the Endure meditation\.|^You are under the influence of the Endure meditation\.
+     action instant put #tvar khriENDURE 0 when ^Your additional endurance fades away as your inner focus slips|^Your recent use of the Endure meditation|^You have not recovered from your previous use of the Endure meditation\.
+     action instant put #tvar khriTERRIFY 1 when ^Preparing your voice, you concentrate on projecting horrifying whispers at a foe
+     action instant put #tvar khriTERRIFY 1 when ^You're already using the Terrify|^You are under the influence of the Terrify meditation
+     action instant put #tvar khriTERRIFY 0 when ^Your focus slips and you feel less horrifying|^Your recent use of the Terrify meditation|^You have not recovered from your previous use of the Terrify meditation\.
+     action instant put #tvar khriHARRIER 1 when ^With mental effort, you center your mind on improving your physical prowess
+     action instant put #tvar khriHARRIER 1 when ^You're already using the Harrier meditation|^You are under influence of the Harrier meditation\.
+     action instant put #tvar khriHARRIER 0 when ^Your focus fails, and you immediately feel less strong|^Your recent use of the Harrier meditation|^You have not recovered from your previous use of the Harrier meditation\.
+     action instant put #tvar khriLIBERATION 1 when ^Your dedicated training lends you grace in both mind and body, allowing you to easily escape binding situations\.|^You're already using the Liberation meditation\.|^You have not recovered from your previous use of the Liberation meditation\.
+     action instant put #tvar khriLIBERATION 0 when ^Your preternatural ability to escape binding situations ceases|^Your recent use of the Liberation meditation|^You have not recovered from your previous use of the Liberation meditation\.
+     action instant put #tvar khriEVANESCENCE 1 when ^Several rapid blinks help to establish your concentration on the ability to become ephemeral and invisible when struck|^You're already using the Evanescence meditation\.|^You are under the influence of the Evanescence meditation\.
+     action instant put #tvar khriEVANESCENCE 0 when ^Your focus fails and you suddenly feel a bit more solid|^Your recent use of the Evanescence meditation|^You have not recovered from your previous use of the Evanescence meditation\.
+     action instant put #tvar khriSHADOWSTEP 1 when ^Letting your thoughts fall into the depths
+     action instant put #tvar khriSHADOWSTEP 1 when ^You're already using the Shadowstep meditation|^You are under the influence of the Shadowstep meditation
+     action instant put #tvar khriSHADOWSTEP 0 when ^You can no longer move so quickly through shadows|^Your recent use of the Shadowstep meditation|^You have not recovered from your previous use of the Shadowstep meditation\.$
+     action instant put #tvar khriCUNNING 1 when ^Your dedicated training lends you grace in both mind and body\, allowing you to easily escape binding situations\.$
+     action instant put #tvar khriCUNNING 1 when ^You are under the influence of the Cunning meditation
+     action instant put #tvar khriCUNNING 0 when ^Your preternatural ability to escape binding situations ceases\.
+     #
+     action instant put #tvar khriINTIMIDATE 0;put #tvar khriCREDENCE 0;put #tvar khriEVANESCENCE 0;put #tvar khriFRIGHT 0;put #tvar khriENDURE 0;put #tvar khriHARRIER 0;put #tvar khriTERRIFY 0;put #tvar khriLIBERATION 0;put #tvar khriSHADOWSTEP 0;put #tvar khriHASTEN 0;put #tvar khriFOCUS 0;put #tvar khriPROWESS 0;put #tvar khriSAFE 0;put #tvar khriDARKEN 0;put #tvar khriDAMPEN 0;put #tvar khriSIGHT 0;put #tvar khriCALM 0;put #tvar khriSTEADY 0;put #tvar khriSERENITY 0;put #tvar khriELIMINATE 0;put #tvar khriSTRIKE 0;put #tvar khriVANISH 0;put #tvar khriAVOIDANCE 0;put #tvar khriFLIGHT 0;put #tvar khriGUILE 0;put #tvar khriSAGACITY 0;put #tvar khriELUSION 0;put #tvar khriSKULK 0 when ^You attempt to relax your mind from all of its meditative states\.|^You are not currently under the influence of any meditations\.
+     put #tvar khriSHADOWSTEP 0
+     put #tvar khriCUNNING 0
+     put #tvar khriHASTEN 0
+     put #tvar khriFOCUS 0
+     put #tvar khriPROWESS 0
+     put #tvar khriSAFE 0
+     put #tvar khriDARKEN 0
+     put #tvar khriDAMPEN 0
+     put #tvar khriSIGHT 0
+     put #tvar khriCALM 0
+     put #tvar khriFLIGHT 0
+     put #tvar khriSAGACITY 0
+     put #tvar khriGUILE 0
+     put #tvar khriSTEADY 0
+     put #tvar khriSERENITY 0
+     put #tvar khriELIMINATE 0
+     put #tvar khriSTRIKE 0
+     put #tvar khriVANISH 0
+     put #tvar khriAVOIDANCE 0
+     put #tvar khriELUSION 0
+     put #tvar khriSPEED 0
+     put #tvar khriSPAR 0
+     put #tvar khriSKULK 0
+     put #tvar khriLIBERATION 0
+     put #tvar khriHARRIER 0
+     put #tvar khriFRIGHT 0
+     put #tvar khriENDURE 0
+     put #tvar khriTERRIFY 0 
+     put #tvar khriEVANESCENCE 0 
+     put #tvar khriCREDENCE 0
+     put #tvar khriINTIMIDATE 0
+     return

@@ -1,0 +1,23 @@
+Spells.Init:
+{
+	var Spells.Custom.Check SummonDeathMonkey
+	var Spells.Custom.Prep SummonDeathMonkey
+	var Spells.Custom.Cast SummonDeathMonkey
+	GOSUB Spells.MoonMage.Init
+	GOSUB Spells.Cleric.Init
+	GOSUB Spells.Bard.Init
+	GOSUB Spells.Empath.Init
+	return
+}
+
+Spells.Valid:
+{
+	var Cast.Condition 1
+	return
+}
+
+Spells.Invalid:
+{
+	var Cast.Condition 0
+	return
+}

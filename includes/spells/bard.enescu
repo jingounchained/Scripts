@@ -1,0 +1,20 @@
+Spells.Bard.Init:
+{
+	var Spells.Custom.Check %Spells.Custom.Check|Resonance
+	#var Spells.Custom.Prep %Spells.Custom.Check
+	var Spells.Custom.Cast %Spells.Custom.Cast|Resonance
+	return
+}
+
+Spells.Resonance.Check:
+{
+	if !(matchre("%currentSkill", "%RangedSkills|Brawling") then goto Spells.Valid
+	return
+}
+
+Spells.Resonance.Cast:
+{
+	var Cast.Target %weapon
+	GOSUB Cast.Execute
+	return 
+}

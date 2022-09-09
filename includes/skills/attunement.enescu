@@ -1,0 +1,48 @@
+attunement.Init:
+{
+	var perceive power
+	var Attunement.Time 0
+	if ("$guild" = "Moon Mage") then
+	{
+		var Perceive.Stream Xibar|Perception|Moonlight Manipulation|Katamba|Enlightened Geometry|Psychic Projection|Yavash|Teleologic|Planets
+		var Perceive.Position -1
+		var Perceive.Count 9
+	}
+	if ("$guild" = "Trader") then 
+	{
+		var Perceive.Stream Illusion|Fabrication|Noematics|Planets|Xibar|Yavash|Katamba
+		var Perceive.Position -1
+		var Perceive.Count 7
+	}
+	
+	
+	return
+}
+
+Attunement.Start:
+Attunement.Round:
+{
+	if ("$guild" = "Moon Mage") or ("$guild" = "Trader") then
+	{
+		math Perceive.Position add 1
+		
+		if (%Perceive.Position >= %Perceive.Count) then 
+		{
+			var Perceive.Position 0
+		}
+		var perceive power %Perceive.Stream(%Perceive.Position)
+		GOSUB Attunement.Perceive
+	}
+	else 
+	{
+		GOSUB TIMER Attunement 61 Attunement.Perceive
+	}
+	if ("%CurrentPrimarySkill" = "Attunement") then var CurrentRoundFinished 1
+	return
+}
+
+Attunement.Perceive:
+{
+	GOSUB utility.Command "%perceive" "^Roundtime"
+	return
+}

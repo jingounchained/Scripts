@@ -1,0 +1,8 @@
+
+
+
+echo Hunting Script Started
+echo Execute %scriptname CONFIG for configuration options.
+echo ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+echo Will not attempt to train any skill above $Enescu.Hunting.MaxRanks
+echo To change this, use syntax .%scriptname {RANKS} (e.g. .%scriptname 70)

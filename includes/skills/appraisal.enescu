@@ -1,0 +1,67 @@
+appraisal.Init:
+{
+	var Appraisal.Time 0
+	return
+}
+
+Appraisal.Round:
+Appraisal.Start:
+{
+	GOSUB TIMER Appraisal 61 Appraisal.PerformAppraisal
+	if (%CurrentPrimarySkill = Appraisal) then var CurrentRoundFinished 1
+	return
+}
+
+Appraisal.PerformAppraisal:
+{
+	
+	GOSUB utility.Command "appraise my $Enescu.Appraisal.Pouch" "^Roundtime"
+	
+	return
+}
+
+Appraisal.Focus.Start:
+{
+	var Research.Project.Status INPROGRESS
+	matchre Appraisal.Focus.Start %Repeat
+	matchre Return focusing beyond|You are already focusing|You resume focusing
+	matchre Appraisal.Focus.Abort You are already under|You can't seem to focus on that.|You can't seem to find much
+	send appraise focus $Enescu.Appraisal.Focus
+	matchwait
+}
+
+Appraisal.Focus.Abort:
+{
+	var Research.Project.Status COMPLETE
+	var Research.NextSkill None
+	return
+}
+
+Appraisal.Critter:
+{
+     if (!$monstercount) then return
+     var critterList $monsterlist
+     eval critterList replacere("%critterList", "\sand", ",")
+     eval critterList replacere("%critterList", "\.", ", ")
+     eval critterList replacere("%critterList", "\swhich\b[^,]*,", ",")
+     eval critterList replacere("%critterList", "\sthat\b[^,]*,", ",")
+     eval critterList replacere("%critterList", "([\w'-]+\s){0,5}", "")
+     eval critterList replacere("%critterList", "\,\s+", "|")
+     eval critterList replacere("%critterList", "\|+" "|")
+     eval critterList replacere("%critterList", "\|\s+" "|")
+     eval critterList replacere("%critterList", "^\|" "")
+     eval critterList replacere("%critterList", "\|$" "")
+     eval critterTotal count("%critterList", "|")
+     evalmath critterEcho (%critterTotal + 1)
+     random 1, %critterEcho
+     evalmath picker (%r - 1)
+     eval Critter element("%critterList", %picker)
+
+     Appraisal.Critter.Internal:
+	 pause 0.01
+     matchre Appraisal.Critter.Internal %Repeat
+     matchre RETURN ^(It's dead\!|Appraise what\?|You cannot appraise that|^You can\'t|You ponder that\,|Roundtime\:?|^\[Roundtime\:?|\(Roundtime\:?)
+     send appraise %Critter quick
+     matchwait 10
+     return
+}

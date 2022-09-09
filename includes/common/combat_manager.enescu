@@ -1,0 +1,61 @@
+combat_manager.Init:
+{
+	var AttackSpell.Position -1
+	var AttackSpell.Casting None
+	return
+}
+
+combat_manager.PrepNextAttackSpell:
+{
+	if contains("Barbarian|Commoner|Thief", "$guild") or ($mana < 25) then return
+	
+	math AttackSpell.Position add 1
+	if !def(Enescu.AttackSpells.%AttackSpell.Position.AttackSpellSpell) or ($Enescu.AttackSpells.%AttackSpell.Position.AttackSpell = 0) then
+	{
+		if (%AttackSpell.Position = 0) then return
+		var AttackSpell.Position -1
+		goto combat_manager.PrepNextAttackSpell
+	}
+	unvar Cast.Condition
+	if ("$Enescu.AttackSpells.%AttackSpell.Position.AttackSpellConditionSub" != "0") and ("$Enescu.AttackSpells.%AttackSpell.Position.AttackSpellConditionSub" != "\$Enescu.AttackSpells.%AttackSpells.Position.AttackSpellConditionSub") then GOSUB $Enescu.AttackSpells.%AttackSpell.Position.AttackSpellConditionSub
+	else var Cast.Condition 1
+	
+	if (%Cast.Condition = 1) then GOSUB combat_manager.PrepNextAttackSpell.Start
+
+	return
+}
+
+combat_manager.PrepNextAttackSpell.Start:
+{
+	if ("$Enescu.AttackSpells.%AttackSpell.Position.AttackSpellPrepSub" != "0") and def(Enescu.AttackSpells.%AttackSpell.Position.AttackSpellPrepSub) then 
+	{
+		GOSUB $Enescu.AttackSpells.%AttackSpell.Position.AttackSpellPrepSub
+	}	
+	else
+	{
+		var combat_manager.AttackSpellCastSub $Enescu.AttackSpells.%AttackSpell.Position.AttackSpellCastSub
+		if ("$Enescu.AttackSpells.%AttackSpell.Position.AttackSpellTargetNoun" != "0") then var AttackSpell.TargetString target $Enescu.AttackSpells.%AttackSpell.Position.AttackSpellTargetNoun
+		else if ("$Enescu.AttackSpells.%AttackSpell.Position.AttackSpellTM" = "1") then var AttackSpell.TargetString target
+		else var AttackSpell.TargetString 
+		
+		GOSUB Cast.StartAttackSpell $Enescu.AttackSpells.%AttackSpell.Position.AttackSpellSpell $Enescu.AttackSpells.%AttackSpell.Position.AttackSpellAmount "" $Enescu.AttackSpells.%AttackSpell.Position.AttackSpellChargeCount $Enescu.AttackSpells.%AttackSpell.Position.AttackSpellChargeAmount "" "%AttackSpell.TargetString"
+		GOSUB Cambrinth.Charge
+	}
+	if ("$preparedspell" != "None") then var AttackSpell.Casting $preparedspell
+	return
+}
+
+combat_manager.Cast:
+{
+	if (%Cast.Ready != 1) or ("$preparedspell" != "%AttackSpell.Casting") then return
+	if ("$Enescu.AttackSpells.%AttackSpell.Position.AttackSpellCastSub" != "0") and def($Enescu.AttackSpells.%AttackSpell.Position.AttackSpellCastSub) then 
+	{
+		GOSUB $Enescu.AttackSpells.%AttackSpell.Position.AttackSpellCastSub
+	}
+	else 
+	{
+		if contains("Barbarian|Commoner|Thief", "$guild") then return
+		else GOSUB Cast.Execute
+	}
+	return
+}

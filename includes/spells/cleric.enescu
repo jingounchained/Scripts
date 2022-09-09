@@ -1,0 +1,37 @@
+Spells.Cleric.Init:
+{
+	#var Spells.Custom.Check %Spells.Custom.Check
+	#var Spells.Custom.Prep %Spells.Custom.Check
+	var Spells.Custom.Cast %Spells.Custom.Cast|HYH
+	return
+}
+
+Spells.HYH.Cast:
+{
+	var Cast.Target malediction
+	GOSUB Cast.Execute
+	return 
+}
+
+Spells.OM.Touch:
+{
+	matchre Spells.OM.Touch %RepeatText
+	matchre return ^Roundtime
+	send touch orb
+	matchwait 1
+	return
+}
+
+Spells.SOL.OM:
+{
+	GOSUB Spells.OM.Touch
+	GOSUB Wear Shield
+	Return
+}
+
+Spells.SAP.Warding:
+{
+	var Cast.Target warding
+	GOSUB Cast.Execute
+	RETURN
+}

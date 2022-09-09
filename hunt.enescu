@@ -1,0 +1,2487 @@
+root:
+{
+
+	GOSUB INIT
+	if ("%1" != "") then
+	{
+		echo %1
+		send #var Enescu.Hunting.MaxRanks %1
+	}
+	else
+	{
+		send #var Enescu.Hunting.MaxRanks 2000
+	}
+	
+	if ("%2" = "magic") then 
+	{
+		echo Forcing Offensive Magic Usage
+		var ForceOffensiveMagic 1
+	}
+	else
+	{
+		var ForceOffensiveMagic 0
+	}
+
+	send .rest
+
+	pause 0.2
+
+	action var attack $2; when by landing (a|an) (\w+)
+	action var attack feint when ^You fail to find any holes|^Analyze what?
+	action var swimming 1 when ^(You splash about in the water!|A shadow appears briefly beneath the water)
+	action send stand when ^(You should stand up first\.|You had better stand up first\.)$
+	action send advance when ^You must be closer to use tactical abilities on your opponent\.$
+	
+	action put #var Enescu.Weapons.Damaris $2 when ^Your Damaris ((?:\w+)(?:\s\w+)?) shifts and momentarily becomes a blurry mass of shadows before resolving itself into a Damaris ((?:\w+)(?:\s\w+)?)\.$
+	action put #var Enescu.WarriorMage.SummonedWeapon $2 when ^You reach out with your will and reshape your ((?:\w+)(?:\s\w+)?) into a ((?:\w+)(?:\s\w+)?)\.$
+	action put #var Enescu.WarriorMage.SummonedWeapon $1 when Thrusting your hand through, you draw out a stone ((?:\w+)(?:\s\w+)?)\.
+	action var react $1 leucro when ^It appears to size you up, preparing to charge.  You believe you could (\w+)
+
+	if ("$guild" = "Bard") then 
+	{
+		action var Bard.Havoc 1 when ^You feel sufficiently recovered to use your cry of havoc again.
+		action var Bard.Concussive 1 when ^You feel sufficiently recovered to use your concussive scream again.
+
+		var Bard.Havoc 1
+		var Bard.Concussive 1
+	}
+
+	var attack attack
+	var ChargesMade 0
+	var ChargeCount 0
+	var ChargeAmount 0
+	var prepared 0
+	var swimming 0
+	var UseFocus 0
+	var CastSub Cast.Execute
+	var MagicCyclePosition -1
+	var Buffs.Position -1
+	var MagicSkillsPosition -1
+	var AttackSpell.Position -1
+	var Sidework.Position -1
+	var Brawl.Position -1
+	var TrainingSpell.Position -1
+	var DisabledForSession null
+	var MeleeSkills Small_Edged|Large_Edged|Twohanded_Edged|Small_Blunt|Large_Blunt|Twohanded_Blunt|Staves|Polearms|Brawling
+	var RangedSkills Bow|Crossbow|Slings
+	var MagicCycle Buff|Train|Attack|Train|Attack|Train|Attack|Train
+	if ("$Guild" = "Empath") then var MagicCycle Empathy|Buff|Attack|Attack
+	if ("$Guild" = "Warrior Mage") then var MagicCycle Attack|Attack|Buff|Attack|Attack|Train|Attack|Attack|Buff
+	var ThrownSkills Heavy_Thrown|Light_Thrown
+	var OffhandedSkills Small_Edged|Small_Blunt
+	var LearningRateAtWhichToSwapWeapons 6
+	var SideworkSkillsMelee Appraisal|Attunement|Locksmithing|Attunement|Guild|Attunement|Brawling|Attunement|Perception|Attunement|Stealth|Attunement|Tactics|Attunement
+	var SideworkSkillsRanged Appraisal|Attunement|Perception|Attunement|Locksmithing|Guild
+	var SideworkSkillsIdle GuildIdle|Attunement|Outdoorsmanship|Attunement|FirstAid|Attunement|Locksmithing|Attunement|Perception|Attunement
+	var SideworkSkillsManipulation %SideworkSkillsMelee|Brawling|%SideworkSkillsRanged|Brawling|%SideworkSkillsIdle|Brawling
+	var BrawlCommands bob|circle|weave
+	var TarantulaSkill Melee Mastery
+	var TrainOffhand $Enescu.Weapons.Offhand.Enabled
+	var t 0
+
+
+	var RepeatText %Repeat
+	GOSUB Hunt.Init
+	echo Weapon skills that can be utilized this run: %Weapons
+	echo Note that if you Enable or Disable weapons you will need to restart this script for the changes to take effect.
+	
+	if ("$preparedspell" != "None") then send release;-.1release symbiosis
+
+	if ("$guild" = "Empath") then
+	{
+		if def(Enescu.Guilds.Empath.Manipulate) then
+		{
+			if ("$Enescu.Guilds.Empath.Manipulate" = "1") then 
+			{
+				GOTO Manipulate.Start
+			}
+		}
+		else
+		{
+			put #var Enescu.Guilds.Empath.Manipulate 1
+			put #save variables
+			echo Starting Manipulation Hunt Routine
+			goto Manipulate.Start
+		}
+	}
+	GOTO Hunt.Start
+}
+
+
+include /includes/common/includes.enescu
+
+Hunt.Init:
+{
+	var Weapons ""
+	GOSUB Hunt.Init.BuildWeaponsArray %MeleeSkills
+	if ("$guild" = "Empath") and ("$Enescu.Guilds.Empath.Manipulate" = "1") then return
+	GOSUB Hunt.Init.BuildWeaponsArray %RangedSkills
+	GOSUB Hunt.Init.BuildMagicSkillsArray
+	return
+}
+
+Hunt.Init.BuildMagicSkillsArray:
+{
+	
+	if ("$Enescu.Magic.Augmentation.Spell" != "OFF") then 
+	{
+		var MagicSkills Augmentation
+	}
+	if ("$Enescu.Magic.Utility.Spell" != "OFF") then 
+	{
+		if ("%MagicSkills" = "") then
+		{
+			var MagicSkills Utility
+		}
+		else
+		{
+			var MagicSkills %MagicSkills|Utility
+		}
+	}
+	if ("$Enescu.Magic.Warding.Spell" != "OFF") then 
+	{
+	if ("%MagicSkills" = "") then
+		{
+			var MagicSkills Warding
+		}
+		else
+		{
+			var MagicSkills %MagicSkills|Warding
+		}
+	}
+	if ("$Enescu.Magic.Sorcery.Spell" != "OFF") then 
+	{
+		if ("%MagicSkills" = "") then
+		{
+			var MagicSkills Sorcery
+		}
+		else
+		{
+			var MagicSkills %MagicSkills|Sorcery
+		}
+	}
+	return
+}
+
+Hunt.Init.BuildWeaponsArray:
+	{
+		var bwaPosition 0
+		var bwaList $1
+		Hunt.Init.BuildWeaponsArray.Internal:
+		if (%bwaPosition <= count("%bwaList", "|") then
+		{
+			if ("$Enescu.Weapons.%bwaList(%bwaPosition).Enabled" = "1") and ($%bwaList(%bwaPosition).Ranks < $Enescu.Hunting.MaxRanks ) then
+			{
+				if ("%Weapons" = "") then 
+				{
+					var Weapons %bwaList(%bwaPosition)
+				}
+				else
+				{
+					var Weapons %Weapons|%bwaList(%bwaPosition)
+				}
+			}
+			math bwaPosition add 1
+			goto Hunt.Init.BuildWeaponsArray.Internal
+		}
+		else
+		{
+			return
+		}
+		return 
+	}
+
+Hunt.Start:
+{
+	
+	if ("%1" = "buff") then 
+	{
+		var MagicCycle Buff|Buff
+		gosub Utility.TimedEvents
+		gosub BuffUp
+		exit
+	}
+	
+	GOSUB Utility.EmptyHands
+	GOSUB Hunt.Prepare
+	GOSUB Hunt.UntilLocked
+	GOSUB Hunt.WrapUp
+	GOTO Hunt.Start
+}
+
+Manipulate.Start:
+{
+	if ("%1" = "buff") then 
+	{
+		var MagicCycle Buff|Buff
+		gosub Utility.TimedEvents
+		gosub BuffUp
+		exit
+	}
+	var TrainOffhand 0
+	var LearningRateAtWhichToSwapWeapons 34
+	GOSUB Utility.EmptyHands
+	GOSUB Hunt.Prepare
+	GOSUB Manipulate.UntilLocked
+	GOTO Manipulate.Start
+}
+
+BuffUp:
+{
+	GOSUB Magic.Round
+	pause 1
+	goto BuffUp
+	return
+}
+
+Hunt.WrapUp:
+{
+	if ($Athletics.Ranks < $Enescu.Hunting.MaxRanks) then GOSUB Utility.FleeBluff
+	GOSUB Weapon.Sheath
+	return
+}
+
+Hunt.Prepare:
+{
+	
+	GOSUB Skill.Set
+	
+	Hunt.Start.PrepareWeapon:
+
+	GOSUB Weapon.Wield
+	GOSUB Weapon.VerifyType
+	
+	GOSUB Stance.Start
+	RETURN
+}
+
+Manipulate.UntilLocked:
+{
+	GOSUB Hunt.ScriptStatus
+	GOSUB Manipulate.Cycle
+	GOTO Manipulate.UntilLocked
+}
+
+Hunt.ScriptStatus:
+{
+	send #clear ScriptStatus
+	send #echo >ScriptStatus Current Skill: %currentSkill
+	#send #echo >ScriptStatus Current Sidework: %SideworkSkills(%Sidework.Position)
+	send #echo >ScriptStatus Max Learning Rate: %LearningRateAtWhichToSwapWeapons
+	send #echo >ScriptStatus Max Skill Ranks: $Enescu.Hunting.MaxRanks
+	return
+}
+
+Hunt.UntilLocked:
+{
+	GOSUB Hunt.ScriptStatus
+	
+	if ($stamina > 60) then
+	{
+		if ($%currentSkill.LearningRate >= %LearningRateAtWhichToSwapWeapons) then 
+		{
+			return
+		}
+		
+		if (contains("%RangedSkills", "%currentSkill") = 1) then
+		{
+			GOSUB Hunt.UsingRanged
+			GOTO Hunt.UntilLocked
+		}
+		else
+		{
+			GOSUB Hunt.UsingMelee
+		}
+	}
+	else
+	{
+		delay 5
+	}
+	GOTO Hunt.UntilLocked
+}
+
+Hunt.UsingMagic:
+{
+	GOTO Magic.StartOfHuntingCycle
+	return
+}
+
+Hunt.UsingRanged:
+{
+	GOTO Ranged.StartOfHuntingCycle
+	return
+}
+
+Hunt.UsingMelee:
+{
+	GOTO Melee.StartOfHuntingCycle
+	return
+}
+
+###################################
+###################################		Skill Sorting
+###################################
+
+Skill.Set:
+{
+		GOSUB skill_manager.GetLowestSkill %Weapons
+		if (%LearningRateAtWhichToSwapWeapons <= $%LowestSkill.LearningRate) then
+		{
+			if (%LearningRateAtWhichToSwapWeapons <= 32) then
+			{
+				math LearningRateAtWhichToSwapWeapons add 6
+				goto Skill.Set
+			}
+			else
+			{
+				put #beep
+				put #echo >ScriptLog Locked All Weapons
+			}
+		}
+		GOSUB Skill.Initialize %LowestSkill
+		return
+}
+
+Skill.Initialize:
+{
+	if ("$1" != "") then
+	{
+	var currentSkill $1
+	var weapon $Enescu.Weapons.%currentSkill.Noun
+	var worn $Enescu.Weapons.%currentSkill.Worn
+	if ("$Enescu.Weapons.%currentSkill.Swap.Command" = "Damaris") then
+	{
+		var damaris 1
+	}
+	else
+	{
+		var damaris 0
+	}
+	if ("$Enescu.Weapons.%currentSkill.Swap.Command" = "Summon") then
+	{
+		var summon 1
+	}
+	else
+	{
+		var summon 0
+	}
+	if (contains("%RangedSkills", "%currentSkill") = 1) then var ammo $Enescu.Weapons.%currentSkill.Ammo.Noun
+
+	unvar tmp_Skill 
+	
+	}
+	return
+}
+
+
+###################################
+###################################		Utility Functions
+###################################
+
+Utility.EmptyHands:
+{
+	gosub Weapon.Sheath
+	matchre Weapon.Sheath.Unload ^You should unload
+	if ("$lefthandnoun" != "") and ("$lefthandnoun" != "%armedLeftHand") then
+	{
+		send stow left
+		send stow right
+	}
+	if ("$righthandnoun" != "") and ("$righthandnoun" != "%armedRightHand") then
+	{
+		send stow right
+	}
+	matchwait 2
+	return
+}
+
+Utility.Analyze:
+{
+	pause 0.01
+	matchre Utility.Analyze %RepeatText
+	matchre return (Analyze what?|Roundtime|You fail to find|^There is nothing else|^Face what?)
+	matchre Utility.Analyze.Advance You must be closer to use tactical abilities on your opponent.
+	send Analyze
+	matchwait 1
+	goto Utility.Analyze
+}
+
+Utility.Analyze.Advance:
+{
+	gosub Utility.Advance
+	delay 3
+	goto Utility.Analyze
+}
+
+Utility.Advance:
+{
+	pause 0.01
+	matchre Utility.Advance %RepeatText
+	matchre return (You begin to|You close to|You are already|What do you want)
+	send advance
+	matchwait
+}
+
+Utility.CheckHealth:
+{
+	pause 0.01
+	matchre Utility.CheckHealth %RepeatText
+	matchre Utility.CheckHealth.NoSignificantInjuries You have no significant injuries. 
+	send health
+	matchwait 2
+	var NeedHealing 1
+	return
+}
+
+Utility.CheckHealth.NoSignificantInjuries:
+{
+	var NeedHealing 0
+	return
+}
+
+Utility.HandleAnyDeadMonsters:
+{
+	if matchre("$roomobjs", "an?.*?([-'\w]+) (\(dead\)|(which|that) appears dead)") then 
+	{
+		var critter $1
+		GOSUB Utility.Guild
+		GOSUB Utility.Skin
+		GOSUB Utility.Loot
+		GOSUB Utility.Loot.Gems
+		GOSUB Utility.Loot.Coins
+		GOSUB Utility.Loot.Other
+	}
+	return
+}
+
+Utility.Guild:
+{
+	
+	if ("$guild" = "Cleric") then
+	{
+		return
+		matchre Utility.Guild %Repeat
+		matchre return Roundtime
+		send pray dead %critter
+		matchwait 1
+	}
+	return
+}
+
+Utility.Thanatology:
+{
+	pause 0.01
+	matchre Utility.Thanatology %RepeatText
+	matchre Utility.Thanatology.Abort.Return only be performed|^A failed or completed|^This corpse has already been|^A skinned creature
+	matchre Utility.Thanatology.Success Roundtime:
+	matchre Utility.Thanatology.Abort.ToSkin Rituals do not work upon constructs.
+	send perform %ThanatologyRitual dead %critter
+	matchwait
+}
+
+Utility.Thanatology.Abort.Return:
+{
+	if ("$preparedspell" = "Devour") then send release spell
+	return
+}
+
+Utility.Thanatology.Abort.ToSkin:
+{
+	if ("$preparedspell" = "Devour") then send release spell
+	goto Utility.Skin.Peel
+}
+
+Utility.Thanatology.Success:
+{
+	if matchre("$lefthand", "(torso|leg|head)") then send drop $1
+	if matchre("$righthand","(torso|leg|head)") then send drop $1
+	pause 0.1
+	if ("$preparedspell" = "Devour") then 
+	{
+		waitforre ^You feel fully prepared
+		send cast
+	}
+	
+	return
+}
+
+Utility.Skin:
+{
+	GOSUB Utility.Skin.Arrange
+	var lefthandbeforeSkin $lefthandnoun
+	var righthandbeforeSkin $righthandnoun
+	if ("$guild" = "Necromancer") then
+	{
+		GOSUB Utility.Skin.Thanatology
+	}
+	else
+	{
+	
+		if ($First_Aid.LearningRate <= $Skinning.LearningRate) then
+		{
+			GOSUB Utility.Dissect
+		}
+		else
+		{
+			GOSUB Utility.Skin.Peel
+		}
+	
+	}
+	if ("$lefthandnoun" != "%lefthandbeforeSkin") then GOSUB Utility.Skin.Bundle $lefthandnoun
+	if ("$righthandnoun" != "%righthandbeforeSkin") then GOSUB Utility.Skin.Bundle $righthandnoun
+	return
+}
+
+Utility.Skin.Thanatology:
+{
+	if ($Enescu.Guilds.Necromancer.Devour.Amount > 0) then
+	{
+		GOSUB Utility.CheckHealth
+	}
+	if (%NeedHealing = 1) then
+	{
+		var ThanatologyRitual consume
+		send release;prep devour $Enescu.Guilds.Necromancer.Devour.Amount
+		GOSUB Utility.Thanatology
+	}
+	else
+	{
+		if ($Thanatology.LearningRate <= $Skinning.LearningRate) then 
+		{
+			var ThanatologyRitual preserve
+			GOSUB Utility.Thanatology
+			var ThanatologyRitual $Enescu.Guilds.Necromancer.Ritual
+			GOSUB Utility.Thanatology
+
+		}
+		else
+		{
+			GOSUB Utility.Skin.Peel
+		}
+	}
+	return
+}
+
+
+Utility.Skin.Bundle:
+{
+	var bundleSkin $1
+	Utility.Skin.Bundle.Internal:
+	pause 0.01
+	matchre Utility.Skin.Bundle.Internal %RepeatText
+	matchre Utility.Skin.Drop (no more room|You try to stuff|You should really only put|What were you referring)
+	matchre Utility.Skin.CreateBundle (You don't have any bundles)
+	matchre return stuff your|BUNDLE HELP|^You carefully
+	
+	send put my %bundleSkin in my bundle
+
+	matchwait 1
+	goto Utility.Skin.Bundle.Internal
+}
+
+Utility.Skin.Bundle.Put:
+{
+	matchre Utility.Skin.Bundle.Put %RepeatText
+	matchre Utility.Skin.Drop no more room|You try to stuff
+	matchre return ^You carefully
+	
+}
+
+Utility.Skin.CreateBundle:
+{
+	GOSUB Utility.Skin.CreateBundle.GetRope
+	GOSUB Utility.Skin.CreateBundle.Bundle
+	GOSUB Utility.Skin.DropBundle
+	return
+}
+
+Utility.Skin.CreateBundle.Bundle:
+{
+	matchre Utility.Skin.CreateBundle.Bundle %RepeatText
+	matchre Utility.Skin.CreateBundle. ^You bundle up
+	send bundle
+	matchwait
+}
+
+Utility.Skin.CreateBundle.GetRope:
+{
+	matchre Utility.Skin.CreateBundle.GetRope %RepeatText
+	matchre return ^You get a|^You pick up
+	matchre Utility.Skin.Drop ^What were|free hand
+	send get bundling rope
+	matchwait
+}
+
+Utility.Skin.Drop:
+{
+	if ("$lefthandnoun" != "") and ("$lefthandnoun" != "%armedLeftHand") then GOSUB Utility.EmptyHand left
+	if ("$righthandnoun" != "") and ("$righthandnoun" != "%armedRightHand") then GOSUB Utility.EmptyHand right
+}
+
+Utility.Skin.DropBundle:
+{
+	matchre Utility.Skin.DropBundle %RepeatText
+	matchre return ^You drop|^But you|^What were
+	send drop bundle
+	matchwait
+}
+
+Utility.EmptyHand:
+{
+	pause 0.01
+	var handtostow $1
+	Utility.EmptyHand.Internal:				
+	if ($$%handtostowhandnoun = %weapon) then return
+	matchre Utility.EmptyHand.Internal %RepeatText
+	matchre return already empty.|^You put
+	matchre Weapon.Sheath.Unload ^You should unload
+	send stow %handtostow
+	matchwait
+}
+
+Utility.EmptyHand.Unload:
+{
+	GOSUB Ranged.Unload
+	goto Utility.EmptyHand.Internal
+}
+
+Utility.Skin.EmptyHands:
+{
+	GOSUB Weapon.Sheath
+	GOSUB Utility.EmptyHands
+	goto Utility.Skin.Bundle
+}
+
+Utility.Loot:
+{
+	pause 0.01
+	matchre Utility.Loot %RepeatText
+	matchre return (^You search|^I could not find)
+	send loot goods
+	matchwait 10
+	return
+}
+
+Utility.Loot.Gems:
+{
+	pause 0.01
+	matchre Utility.Loot.Gems (You pick up|...wait|type ahead)
+	matchre Utility.Loot.Gems.Tie ^You\'ve already got a wealth of gems in there\!  You\'d better tie it up before putting more gems inside\.$
+	matchre return ^Stow what
+	send stow gem
+	matchwait 10
+	return
+}
+
+Utility.Loot.Gems.Tie:
+{
+	pause 0.01
+	matchre Utility.Loot.Gems.Tie %Repeat
+	matchre Utility.Loot.Gems.Tied (^You tie up the|has already been tied off\.$)
+	send tie my pouch
+	matchwait 1
+	goto Utility.Loot.Gems.Tie
+}
+
+Utility.Loot.Gems.Tied:
+{
+	GOSUB StowHands
+	GOTO Utility.Loot.Gems	
+}
+
+Utility.Loot.Coins:
+{
+	pause 0.01
+	matchre Utility.Loot.Coins (You pick up|...wait|type ahead)
+	matchre return ^What were
+	send get coin
+	matchwait 10
+	return
+}
+
+Utility.Loot.Other:
+{
+	pause 0.01
+	if matchre("$roomobjs", "(crumpled page|singed page|shattered bloodlock|front cover|book spine|scroll|clay tablet|wax tablet|hhr'lav'geluhh bark|smudged parchment|tattered papyrus|faded vellum|papyrus roll|ostracon|seishaka leaf|tattered map|khor\'vela limb|khor\'vela sapling|khor\'vela branch|khor\'vela sprig|khor\'vela twig|khor\'vela stick|khor\'vela chip|khor\'vela shaving|card)") then 
+	{
+		put #echo >ScriptLog Hunt looted: $1
+		matchre Utility.Loot.Other (You pick up|%RepeatText)
+		matchre return ^What were
+		send stow $1
+		matchwait 10
+		return
+	}
+}
+
+Utility.Skin.Arrange:
+{
+	pause 0.01
+	matchre Utility.Skin.Arrange %RepeatText
+	matchre return (^You complete arranging|corpse is worthless now|Arrange what|^You might want to kill it first|so you can't arrange it either|has already been arranged|^Try killing)
+	matchre Utility.Skin.Arrange.Part That creature cannot produce
+	matchre Utility.Skin.Arrange ^(Roundtime)
+	if ($Enescu.Skinning.ArrangeAll.Enabled = 1) then
+	{
+		send arrange all dead %critter for skin
+	}
+	else
+	{
+		send arrange dead %critter for skin
+	}
+	matchwait 3
+	return
+}
+
+Utility.Skin.Arrange.Part:
+{
+	pause 0.01
+	matchre Utility.Skin.Arrange.Part %RepeatText
+	matchre return (^You complete arranging|corpse is worthless now|Arrange what|^You might want to kill it first|so you can't arrange it either|^That has already been)
+	matchre Utility.Skin.Arrange.Part (Roundtime)
+	if ($Enescu.Skinning.ArrangeAll.Enabled = 1) then
+	{
+		send arrange all dead %critter for part
+	}
+	else
+	{
+		send arrange dead %critter for part
+	}
+	matchwait 3
+	return
+}
+
+Utility.Skin.Peel:
+{
+	pause 0.01
+	if ("$Enescu.Skinning.Bundle.Enabled" = "0") then
+	{
+		GoTo Utility.Skin.GiveNecromancyAChance
+	}
+	matchre Utility.Skin.Peel %RepeatText
+	matchre return (^Some days it just doesn't pay to wake up|^A heartbreaking slip at the last moment renders your chances|manage to slice it to dripping tatters|You bumble the attempt|but only succeed in reducing|but end up destroying|You fumble and make an improper cut|Maybe helping little old Halfling widows across a busy Crossing street|You claw|twists and slips in your grip|^There isn't another|^Living creatures often object|Skin what\?|^Somehow managing to do EVERYTHING|^You hide)
+	matchre Utility.Skin.GiveNecromancyAChance cannot be skinned
+	matchre Utility.Skin.Peel ^You approach
+	matchre return (into your bundle|Roundtime)
+	match return Skin what?
+	send skin
+	matchwait 3
+	return
+}
+
+Utility.Dissect:
+{
+	matchre Utility.Skin.Peel ^That\'d be a waste of time\.
+	matchre return ^Roundtime
+	do dissect
+	matchwait 2
+	return
+}
+
+Utility.Skin.GiveNecromancyAChance:
+{
+	if ("$guild" = "Necromancer") then
+	{
+		pause 0.01
+		matchre Utility.Skin.GiveNecromancyAChance %RepeatText
+		matchre Return only be performed|Roundtime:|Rituals do not work upon constructs.|The preservation ritual that has been performed|A failed or completed ritual|This corpse has already been
+		send perform $Enescu.Guilds.Necromancer.Ritual dead %critter
+		matchwait
+	} else
+	{
+		return
+	}
+}
+
+Utility.SideWork:
+{
+
+	GOSUB Sidework
+	
+	return
+}
+
+Utility.FleeBluff:
+{
+		return
+}
+
+Utility.DisableSkillForSession:
+{
+	if (%DisabledForSession = null) then
+	{
+		var DisabledForSession $1
+	}
+	else
+	{
+		var DisabledForSession %DisabledForSession|$1
+	}
+	return
+}
+
+
+Utility.React:
+{
+	if ("%react" != "") then
+	{
+		matchre Utility.React %RepeatText
+		matchre Utility.ClearReaction ^Roundtime
+		send %react
+		matchwait 3
+		gosub Utility.ClearReaction
+		return
+	}
+	return
+}
+
+Utility.ClearReaction:
+{
+	var react 
+	return
+}
+
+
+###################################
+###################################		Weapon Handling
+###################################
+
+Weapon.Wield:
+{
+	if ("%currentSkill" = "Brawling") then return
+	if ("$righthandnoun" = "%weapon") then return
+	
+	var wieldCommand wield my %weapon
+	
+	if ("%TrainOffhand" = "1") and (contains("%OffhandedSkills", "%currentSkill") = 1) and ($Enescu.Weapons.%currentSkill.Swap != 1) and ($Offhand_Weapon.LearningRate < 30) and ($Offhand_Weapon.Ranks < $Enescu.Hunting.MaxRanks) then 
+	{
+		###
+		### LEFT HAND WIELDING LOGIC
+		###
+		if (%damaris = 1) then
+		{
+			if ("$lefthandnoun" = "$Enescu.Weapons.Damaris") then
+			{
+				var wieldCommand turn my $Enescu.Weapons.Damaris to %weapon
+			}
+			else if ("$righthandnoun" = "$Enescu.Weapons.Damaris") then
+			{
+				var wieldCommand swap;turn my $Enescu.Weapons.Damaris to %weapon
+			}
+			else
+			{
+				GOSUB Weapon.Wield.Damaris left
+				var wieldCommand turn my $Enescu.Weapons.Damaris to %weapon
+			}
+		}
+		else 
+		{
+			if (%summon = 1) then
+			{
+				GOSUB Summon.SetSkill %currentSkill
+				if ("$lefthandnoun" = "$Enescu.WarriorMage.SummonedWeapon") then
+				{
+					var wieldCommand shape my $Enescu.WarriorMage.SummonedWeapon to %summonSkill
+				}
+				else if ("$righthandnoun" = "$Enescu.WarriorMage.SummonedWeapon") then
+				{
+					var wieldCommand swap;shape my $Enescu.WarriorMage.SummonedWeapon to %summonSkill
+				}
+				else
+				{
+					
+					GOSUB Summon.Weapon.Wield
+					if ("$righthandnoun" != "%weapon") then var wieldCommand shape my $Enescu.WarriorMage.SummonedWeapon to %summonSkill
+					else var wieldCommand clench my %weapon
+				}
+			}
+			else
+			{
+				var wieldCommand wield left my %weapon
+			}
+		}
+	}
+	else
+	{
+		###
+		### RIGHT HAND WIELDING LOGIC
+		###
+		
+if (%damaris = 1) then
+{
+	if ("$lefthandnoun" = "$Enescu.Weapons.Damaris") then
+	{
+		var wieldCommand swap;turn my $Enescu.Weapons.Damaris to %weapon
+	}
+	else if ("$righthandnoun" = "$Enescu.Weapons.Damaris") then
+	{
+		var wieldCommand turn my $Enescu.Weapons.Damaris to %weapon
+	}
+	else
+	{
+	
+		GOSUB Weapon.Wield.Damaris
+		var wieldCommand turn my $Enescu.Weapons.Damaris to %weapon
+	}
+}
+else 
+{
+	if (%summon = 1) then
+	{
+		GOSUB Summon.SetSkill %currentSkill
+		if ("$lefthandnoun" = "$Enescu.WarriorMage.SummonedWeapon") then
+		{
+			var wieldCommand swap;shape my $Enescu.WarriorMage.SummonedWeapon to %summonSkill
+		}
+		else if ("$righthandnoun" = "$Enescu.WarriorMage.SummonedWeapon") then
+		{
+			var wieldCommand shape my $Enescu.WarriorMage.SummonedWeapon to %summonSkill
+		}
+		else
+		{
+			GOSUB Summon.Weapon.Wield
+			if ("$righthandnoun" != "%weapon") then var wieldCommand shape my $Enescu.WarriorMage.SummonedWeapon to %summonSkill
+			else var wieldCommand clench my %weapon
+		}
+	}
+	else 
+	{
+		if ( %worn = 1) then
+		{
+			var wieldCommand remove my %weapon
+			if ($Enescu.Weapons.%currentSkill.Swap = 1) and ("$Enescu.Weapons.%currentSkill.Swap.Command" = "open") then send open my %weapon
+		}
+		else
+		{
+			var wieldCommand wield my %weapon
+			if ($Enescu.Weapons.%currentSkill.Swap = 1) and ("$Enescu.Weapons.%currentSkill.Swap.Command" = "open") then send open my %weapon
+		}
+	}
+}
+	}
+	
+	pause 0.01
+	matchre Weapon.Wield %RepeatText
+	matchre Weapons.FreeHandsToWield (free hand|need to have your)
+	matchre Weapons.Error (out of reach|What were you|can't seem|Wield what?|You can only wield a weapon|Remove what?)
+	matchre Weapon.Wield.VerifyHand (^You clench|^Roundtime|^Your Damaris|^With a flick of your wrist|^You draw|^You take|already holding|free to|You sling|already holding|inventory|You remove|^You aren't wearing|You grab|You get|You deftly remove|^You yank your)
+	matchre Weapon.GetFromGround as it is lying at your feet!
+	send %wieldCommand
+	
+	matchwait
+}
+
+Weapon.Wield.Damaris:
+{
+	matchre Weapon.Wield.Damaris %RepeatText
+	matchre Weapons.FreeHandsToWield (free hand|need to have your)
+	matchre Weapons.FindDamaris (out of reach|What were you|can't seem|Wield what?|You can only wield a weapon|Remove what?)
+	matchre Weapon.Sheath.Unload (^You should probably save your)
+	matchre Weapon.Remove.Damaris (^You\'re wearing a)
+	matchre Weapon.GetFromGround as it is lying at your feet!
+	matchre Return (^With a flick of your wrist|^You draw|^You take|already holding|free to|You sling|already holding|inventory|You remove|^You aren't wearing|You grab|You get|You deftly remove|^You yank your)
+	send wield my Damaris $Enescu.Weapons.Damaris 
+	matchwait 2
+	return
+}
+
+Weapon.Wield.DamarisNoFind:
+{
+	matchre Weapon.Wield.Damaris %RepeatText
+	matchre Weapons.FreeHandsToWield (free hand|need to have your)
+	matchre return (out of reach|What were you|can't seem|Wield what?|You can only wield a weapon|Remove what?)
+	matchre Weapon.Sheath.Unload (^You should probably save your)
+	matchre Weapon.Remove.Damaris (^You\'re wearing a)
+	matchre Weapon.GetFromGround as it is lying at your feet!
+	matchre Return (^With a flick of your wrist|^You draw|^You take|already holding|free to|You sling|already holding|inventory|You remove|^You aren't wearing|You grab|You get|You deftly remove|^You yank your)
+	send wield my Damaris $Enescu.Weapons.Damaris
+	matchwait 2
+	return
+}
+
+Weapons.FindDamaris:
+{
+	
+	var DamarisPosition 0
+	var DamarisWeaponSkills %MeleeSkills|%RangedSkills
+	Weapons.FindDamaris.Internal:
+	if (%DamarisPosition <= count("%DamarisWeaponSkills", "|") then
+	{
+		if ("$Enescu.Weapons.%DamarisWeaponSkills(%DamarisPosition).Swap.Command" = "Damaris") then 
+		{
+			put #var Enescu.Weapons.Damaris $Enescu.Weapons.%DamarisWeaponSkills(%DamarisPosition).Noun
+			GOSUB Weapon.Wield.DamarisNoFind
+		}
+		if ("$righthandnoun" = "$Enescu.Weapons.Damaris") or ("$lefthandnoun" = "$Enescu.Weapons.Damaris") then
+		{
+			return
+		}
+		math DamarisPosition add 1
+		goto Weapons.FindDamaris.Internal
+	}
+	else
+	{
+		put #echo DAMARIS WEAPON NOT FOUND! FIND YOUR WEAPON AND TURN IT TO CONTINUE!
+		waitfor ^Your Damaris
+		return
+	}
+		
+}
+
+Weapon.Remove.Damaris: 
+{
+	matchre Weapon.Remove %RepeatText
+	matchre Weapons.FreeHandsToWield (free hand|need to have your)
+	matchre Return (^With a flick of your wrist|^You draw|^You take|already holding|free to|You sling|already holding|inventory|You remove|^You aren't wearing|You grab|You get|You deftly remove|^You yank your)
+	send remove my $Enescu.Weapons.Damaris
+	matchwait 2
+	return
+}
+
+Weapon.GetFromGround:
+{
+	pause 0.01
+	matchre Weapon.GetFromGround %RepeatText
+	matchre Weapon.Wield.VerifyHand ^You pick up
+	send get my %weapon
+	matchwait
+}
+
+Weapon.VerifyType:
+{
+	if ($Enescu.Weapons.%currentSkill.Swap != 1) then return
+	matchre Weapon.VerifyType %RepeatText
+	matchre Weapon.TypeOf.SmallEdged small edged 
+	matchre Weapon.TypeOf.LargeEdged large edged 
+	matchre Weapon.TypeOf.TwohandedEdged two-handed edged 
+	matchre Weapon.TypeOf.SamllBlunt small blunt 
+	matchre Weapon.TypeOf.LargeBlunt large blunt | heavy blunt
+	matchre Weapon.TypeOf.TwohandedBlunt two-handed blunt 
+	matchre Weapon.TypeOf.Staves stave 
+	matchre Weapon.TypeOf.Polearms polearm 
+	matchre Weapon.TypeOf.Bow the bow 
+	matchre Weapon.TypeOf.Sling sling skill.
+	matchre Weapon.TypeOf.Crossbow crossbow  
+	matchre Weapon.WieldAndReturnToVerify It's hard to appraise
+	send appraise my %weapon quick
+	matchwait
+}
+
+Weapon.WieldAndReturnToVerify:
+{
+	GOSUB Weapon.Wield
+	GOTO Weapon.VerifyType
+}
+
+Weapon.TypeOf.SmallEdged:
+{
+	var Weapon.Type Small_Edged
+	GOTO Weapon.TypeMatch
+}
+
+Weapon.TypeOf.LargeEdged:
+{
+	var Weapon.Type Large_Edged
+	GOTO Weapon.TypeMatch
+}
+
+Weapon.TypeOf.TwohandedEdged:
+{
+	var Weapon.Type Twohanded_Edged
+	GOTO Weapon.TypeMatch
+}
+
+Weapon.TypeOf.SamllBlunt:
+{
+	var Weapon.Type Small_Blunt
+	GOTO Weapon.TypeMatch
+}
+
+Weapon.TypeOf.LargeBlunt:
+{
+	var Weapon.Type Large_Blunt
+	GOTO Weapon.TypeMatch
+}
+
+Weapon.TypeOf.TwohandedBlunt:
+{
+	var Weapon.Type Twohanded_Blunt
+	GOTO Weapon.TypeMatch
+}
+
+Weapon.TypeOf.Staves:
+{
+	var Weapon.Type Staves
+	GOTO Weapon.TypeMatch
+}
+
+Weapon.TypeOf.Polearms:
+{
+	var Weapon.Type Polearms
+	GOTO Weapon.TypeMatch
+}
+
+Weapon.TypeOf.Bow:
+{
+	var Weapon.Type Bow
+	GOTO Weapon.TypeMatch
+}
+
+Weapon.TypeOf.Sling:
+{
+	var Weapon.Type Slings
+	GOTO Weapon.TypeMatch
+}
+
+Weapon.TypeOf.Crossbow:
+{
+
+	var Weapon.Type Crossbow
+	GOTO Weapon.TypeMatch
+}
+
+Weapon.TypeMatch:
+{
+	if (%Weapon.Type = %currentSkill) then 
+	{
+		var armedLeftHand $lefthandnoun
+		var armedRightHand $righthandnoun
+		return
+	}
+	if ($Enescu.Weapons.%currentSkill.Swap = 1) then
+	{
+		GOSUB Weapon.Swap
+		goto Weapon.VerifyType
+	}
+	#echo Weapon Type Mismatch!
+	exit
+}
+
+
+
+Weapons.Error:
+{
+	echo Can't seem to find your weapon. Grab it and put it in the designated container please!
+	send #echo >ScriptStatus red Your weapon seems to be missing!
+	exit
+}
+
+Weapon.Swap:
+{
+	matchre Weapon.Swap %RepeatText
+	matchre return ^(?:The|You|With|Your(?! eyes blaze)|Stepping|Silver|switch|shift) (?!feel).* (?:it|a|and) (.*)
+    matchre return ^(?:Poised) .* (?:it|a) (.*) and .*
+    matchre return ^(?:With|Your) .* (?:it|as?|and) (.*) (on|in front of) your (?:\S+).
+    matchre return ^(?:You (?:switch|deftly)) .* (?:a)? (.*) (?:a|and) (.*)\.
+	matchre Weapon.SwapError You move
+	send $Enescu.Weapons.%currentSkill.Swap.Command my %weapon
+	matchwait
+}
+
+Weapon.SwapError:
+{
+	echo Your weapon is set to be swappable but doesn't appear to be!
+	send #echo >ScriptStatus red Your weapon isn't the correct type!
+	exit
+}
+
+Weapon.SwapHand:
+{
+	pause 0.01
+	matchre Weapon.SwapHand %RepeatText
+	matchre return ^You move
+	send swap
+	matchwait
+}
+
+
+Weapon.Wield.VerifyHand:
+{
+	pause .01
+	if (contains("%OffhandedSkills", "%currentSkill") != 1) or ("%TrainOffhand" = "0") then
+	{
+		if ($righthand = Empty) then GOSUB Weapon.SwapHand
+	}
+	else
+	{
+		if ($Offhand_Weapon.LearningRate < 30) and ($Offhand_Weapon.Ranks < $Enescu.Hunting.MaxRanks) then
+		{
+			if ($lefthand = Empty) then GOSUB Weapon.SwapHand
+			if ("$lefthandnoun" = "") then
+			{
+				pause 1
+				goto Weapon.Wield.VerifyHand
+			}
+		}
+	}
+	return
+}
+
+
+Weapons.FreeHandsToWield:
+{
+	GOSUB Weapon.Sheath
+	GOSUB Utility.EmptyHands
+	GOTO Weapon.Wield
+}
+
+Weapon.Sheath:
+{
+	if ("$lefthand" = "Empty" && "$righthand" = "Empty") then return
+	pause .2
+	if (%worn = 1) then
+	{
+		if matchre("($lefthand|$righthand)", "%weapon" ) then var sheathCommand wear my %weapon
+	}
+	else
+	{
+		var sheathCommand
+		if ("$lefthand" != "Empty") then var sheathCommand stow left;
+		if ("$righthand" != "Empty") then var sheathCommand %sheathCommand stow right
+	}
+	matchre Weapon.Sheath %RepeatText
+	matchre Weapon.Sheath.Unload ^(You should unload|There\'s no room)
+	matchre return ^Sheathe what\?|^You put|^Sheathing an?|^With a flick of your wrist|^With fluid and stealthy movements|^You easily strap|^You hang|^You secure|^You sheath|^You slip|^You strap|you sheath|^You sling|telekinetic|You attach|^You carefully
+	if ($Enescu.Weapons.%currentSkill.Swap = 1) and ("$Enescu.Weapons.%currentSkill.Swap.Command" = "open") then send close my %weapon
+	pause .2
+	send %sheathCommand
+	matchwait
+}
+
+Weapon.Sheath.Unload:
+{
+	pause 0.01
+	matchre Weapon.Sheath.Unload %RepeatText
+	matchre Weapon.Sheath.Unload.Stow ^You unload
+	matchre return ^But your|&^You don\'t have a ranged weapon
+	send unload
+	matchwait
+}
+
+Weapon.Sheath.Unload.Stow:
+{
+	gosub Ranged.RetrieveArrows
+	goto Weapon.Sheath
+}
+
+Weapon.Unload:
+{
+	pause 0.01
+	matchre Weapon.Unload %RepeatText
+	matchre Weapon.StowAmmo (falls from)
+	matchre return (Roundtime)
+	matchre return ^But your|&^You don\'t have a ranged weapon
+	send unload
+	matchwait
+}
+
+
+
+###################################
+###################################		Buff Magics
+###################################		
+
+Magic.Round:
+{
+	GOSUB Utility.React
+	if ($CastTimeRemaining = 0) and  ("$preparedspell" != "None") then GOSUB %CastSub
+	if ("$preparedspell" = "None") then 
+	{
+		var MagicCycleConsecutiveAborts 0
+		GOSUB Magic.Cycle.Start
+	}
+	if ("$preparedspell" != "None") then GOSUB Cambrinth.Charge	
+	return
+	return
+}
+
+Magic.Cycle.Start:
+{
+	if (%MagicCycleConsecutiveAborts > count("%MagicCycle", "|")) then return
+	math MagicCyclePosition add 1
+	if (%MagicCyclePosition <= count("%MagicCycle", "|") then
+	{
+
+		var castPrepPrior 
+		var castPrepPost 
+		var castCastPrior 
+		var castCastPost 
+		var castTarget
+		var PrepAmount 		
+		var ChargeCount 	
+		var ChargeAmount 	
+		var PrepSpell 		
+		var PrepSub Magic.Cycle.Prep
+		var CastSub Cast.Execute
+		
+		var MagicCycle.Abort 0
+		var MagicCycle%MagicCycle(%MagicCyclePosition).ConsecutiveAborts 0
+		GOSUB Magic.Cycle.%MagicCycle(%MagicCyclePosition).Prep
+
+		if ("%MagicCycle.Abort" = "1") then 
+		{
+			math MagicCycleConsecutiveAborts add 1
+			goto Magic.Cycle.Start
+		}
+		GOSUB %PrepSub
+		if ("%UseFocus" != "0") then GOSUB Magic.UseFocus
+
+	}
+	else
+	{
+		var MagicCyclePosition -1
+		goto Magic.Cycle.Start
+	}
+	return 
+}
+
+Magic.Cycle.Prep:
+{
+	GOSUB Cast.StartTrainingSpell "%PrepSpell" %PrepAmount "%castTarget" %ChargeCount %ChargeAmount "%castPrepPrior" "%castPrepPost" "%castCastPrior" "%castCastPost"
+	
+	return
+}
+
+Magic.Cycle.Buff.Prep:
+{
+	math Buffs.Position add 1
+	if !def(Enescu.Buffs.%Buffs.Position.BuffSpell) then
+	{
+		if (%Buffs.Position = 0) or (%MagicCycleBuff.ConsecutiveAborts > %Buffs.LastPosition) then goto Magic.Cycle.Abort
+		else
+		{
+			var Buffs.LastPosition %Buffs.Position
+			var Buffs.Position -1
+			goto Magic.Cycle.Buff.Prep
+		}
+	}
+	if ("$Enescu.Buffs.%Buffs.Position.BuffSpellTimerName" = "OsrelMeraud") or ("$SpellTimer.$Enescu.Buffs.%Buffs.Position.BuffSpellTimerName.duration" = "OM") or (("$SpellTimer.$Enescu.Buffs.%Buffs.Position.BuffSpellTimerName.duration" = "999") and ("$guild" = "Cleric") then
+	{
+		
+		if ($SpellTimer.OsrelMeraud.duration < 90) then
+		{
+			GOSUB Magic.OM.Infuse
+		}
+		goto Magic.Cycle.Abort
+		
+	}
+
+	if ($SpellTimer.$Enescu.Buffs.%Buffs.Position.BuffSpellTimerName.duration > 5) or ("$SpellTimer.$Enescu.Buffs.%Buffs.Position.BuffSpellTimerName.active" = "1") or ("$Enescu.Buffs.%Buffs.Position.BuffCombat" = "0") then 
+	{
+		math MagicCycleBuff.ConsecutiveAborts add 1
+		goto Magic.Cycle.Buff.Prep
+	}
+
+	if ("$Enescu.Buffs.%Buffs.Position.BuffConditionSub" != "0") then 
+	{
+		GOSUB $Enescu.Buffs.%Buffs.Position.BuffConditionSub
+		if ("%Cast.Condition" != "1") then 
+		{
+			math MagicCycleBuff.ConsecutiveAborts add 1
+			goto Magic.Cycle.Buff.Prep
+		}
+	}
+	
+	if 	("$Enescu.Buffs.%Buffs.Position.BuffPrepSub" != "0") then
+	{
+		var PrepSub $Enescu.Buffs.%Buffs.Position.BuffPrepSub
+	}
+	
+	if 	("$Enescu.Buffs.%Buffs.Position.BuffCastSub" != "0") then
+	{
+		var CastSub $Enescu.Buffs.%Buffs.Position.BuffCastSub
+	}
+	
+	var PrepAmount $Enescu.Buffs.%Buffs.Position.BuffAmount
+	var ChargeCount $Enescu.Buffs.%Buffs.Position.BuffChargeCount
+	var ChargeAmount $Enescu.Buffs.%Buffs.Position.BuffChargeAmount
+	var PrepSpell $Enescu.Buffs.%Buffs.Position.BuffSpell
+	
+	if ("$Enescu.Buffs.%Buffs.Position.BuffFocus" != "0") then 
+	{
+		var UseFocus $Enescu.Buffs.%Buffs.Position.BuffFocus
+		var FocusWorn $Enescu.Buffs.%Buffs.Position.BuffFocusWorn
+	}
+	return
+}
+
+Magic.Cycle.Empathy.Prep:
+{
+	if ("$SpellTimer.IcutuZaharenela.active" = "1") and ($Empathy.LearningRate < 34) and ($Empath.Ranks < $Enescu.Hunting.MaxRanks) then 
+	{
+		GOSUB Spells.IZTouch.Prep
+	}
+	var MagicCycle.Abort 1
+	return
+}
+
+
+Magic.Cycle.Attack.Prep:
+{
+	
+	math AttackSpell.Position add 1
+	if !def(Enescu.AttackSpells.%AttackSpell.Position.AttackSpellSpell) then
+	{
+		if ("%AttackSpell.Position" = "0") or (%MagicCycleAttack.ConsecutiveAborts > %AttackSpell.LastPosition) then 
+		goto Magic.Cycle.Abort
+		var AttackSpell.LastPosition %AttackSpell.Position
+		var AttackSpell.Position -1
+		goto Magic.Cycle.Attack.Prep
+	}
+	if ("$Enescu.AttackSpells.%AttackSpell.Position.AttackSpellTM" = "1") then 
+	{
+		var AttackSpellSkill Targeted_Magic
+	}
+	else 
+	{
+		var AttackSpellSkill Debilitation
+	}
+	if ($%AttackSpellSkill.Ranks > $Enescu.Hunting.MaxRanks) and ("%ForceOffensiveMagic" = "0") then
+	{
+		math MagicCycleAttack.ConsecutiveAborts add 1
+		goto Magic.Cycle.Attack.Prep
+	}
+
+	
+	if ("$Enescu.AttackSpells.%AttackSpell.Position.AttackSpellConditionSub" != "0") then
+	{
+		var Cast.Condition 0
+		GOSUB $Enescu.AttackSpells.%AttackSpell.Position.AttackSpellConditionSub)
+		if ("%Cast.Condition" != "1" ) then
+		{
+			math MagicCycleAttack.ConsecutiveAborts add 1
+			goto Magic.Cycle.Attack.Prep
+		}
+	}
+	
+	if ("$Enescu.AttackSpells.%AttackSpell.Position.AttackSpellTM" = "1") then 
+	{
+		if ("$Enescu.AttackSpells.%AttackSpell.Position.AttackSpellTargetNoun" != "0") then var castPrepPost target $Enescu.AttackSpells.%AttackSpell.Position.AttackSpellTargetNoun
+		else var castPrepPost target
+	}
+	else if ("$Enescu.AttackSpells.%AttackSpell.Position.AttackSpellTargetNoun" !- "0") then var castTarget $Enescu.AttackSpells.%AttackSpell.Position.AttackSpellTargetNoun
+
+	var PrepAmount $Enescu.AttackSpells.%AttackSpell.Position.AttackSpellAmount
+	var ChargeCount $Enescu.AttackSpells.%AttackSpell.Position.AttackSpellChargeCount
+	var ChargeAmount $Enescu.AttackSpells.%AttackSpell.Position.AttackSpellChargeAmount
+	var PrepSpell $Enescu.AttackSpells.%AttackSpell.Position.AttackSpellSpell
+
+	if ("$Enescu.AttackSpells.%AttackSpell.Position.AttackSpellPrepSub" != "0") then var PrepSub $Enescu.AttackSpells.%AttackSpell.Position.AttackSpellPrepSub
+	
+	return
+
+}
+
+Magic.Cycle.Train.Prep:
+{
+	if (%MagicCycleTrain.ConsecutiveAborts >= count("%MagicSkills", "|")) then 
+	{
+		var MagicCycle.Abort 1
+		return
+	}
+	GOSUB skill_manager.GetLowestSkill %MagicSkills
+		var CurrentMagic %LowestSkill
+		
+		if ($%CurrentMagic.LearningRate > 33) or ("$Enescu.Magic.%CurrentMagic.Spell" = "OFF") then 
+		{
+			math MagicCycleTrain.ConsecutiveAborts add 1
+			goto Magic.Cycle.Train.Prep
+		}
+		
+		if ("$Enescu.Magic.%CurrentMagic.Release" = "BEFORE") then var castCastPrior release $Enescu.Magic.%CurrentMagic.Spell
+		if ("$Enescu.Magic.%CurrentMagic.Release" = "AFTER") then var castCastPost release $Enescu.Magic.%CurrentMagic.Spell
+		if !(contains("0|NONE","$Enescu.Magic.%CurrentMagic.Target")) then var castTarget $Enescu.Magic.%CurrentMagic.Target
+		if ($Enescu.Magic.%CurrentMagic.Symbiosis = 1) then 
+		{
+			if ("%castPrepPrior" != "") then var castPrepPrior %castPrepPrior;prep symbiosis
+			else var castPrepPrior prep symbiosis
+			
+			if ("%castCastPost" != "") then var castCastPost %castCastPost;release symbiosis
+			else var castCastPost release symbiosis
+		}
+		
+		var PrepAmount $Enescu.Magic.%CurrentMagic.Amount
+		var ChargeCount $Enescu.Magic.%CurrentMagic.Charge.Count
+		var ChargeAmount $Enescu.Magic.%CurrentMagic.Charge.Amount
+		var PrepSpell $Enescu.Magic.%CurrentMagic.Spell
+		
+		return
+	}
+	else 
+	{
+		var MagicSkillsPosition -1
+		goto Magic.Cycle.Train.Prep
+	}
+	return
+}
+
+Magic.Cycle.Abort:
+{
+	var MagicCycle.Abort 1
+	return
+}
+
+Magic.UseFocus:
+{
+	GOSUB Utility.EmptyHands
+	if ("%FocusWorn" = "1") then 
+	{
+		GOSUB Remove %UseFocus
+	}
+	else
+	{
+		GOSUB Get %UseFocus
+	}
+	GOSUB Magic.Focus.Invoke
+	
+	if ("%FocusWorn" = "1") then 
+	{
+		GOSUB Wear %UseFocus
+	}
+	else
+	{
+		GOSUB Stow %UseFocus
+	}
+	var UseFocus 0
+	GOSUB Weapon.Wield
+	return
+}
+
+Magic.Focus.Invoke:
+{
+	pause 0.1
+	matchre Magic.Focus.Invoke %RepeatText
+	matchre return ^Roundtime|You must begin preparing a ritual spell
+	send invoke my %UseFocus
+	matchwait 1
+	return
+}
+
+#####################
+#####################	Manipulation Cycle
+#####################
+
+Manipulate.Cycle:
+{
+	if ($standing != 1) then GOSUB Stand
+	GOSUB Utility.TimedEvents
+	GOSUB Magic.Round
+	GOSUB Manipulate.Perform
+	GOSUB SideWork.Manipulation
+	GOSUB Magic.Round
+	GOSUB Utility.HandleAnyDeadMonsters
+	return
+}
+
+Manipulate.Perform:
+{
+	GOSUB Utility.React
+	GOSUB Manipulate.Assess
+	if matchre("$monsterlist", "\s(\w+)$") and (%Manipulate.Targets < %Manipulate.Limit) then 
+	{
+		pause 0.01
+			matchre Manipulate.Perform %Repeat
+			matchre return ^Manipulate what
+			matchre return suddenly ceases hostilities towards you\.$
+			matchre Manipulate.SetLimit ^You strain, but cannot extend your will any further.$
+			matchre Manipulate.Second ^You're already manipulating 
+			send manipulate friendship $1
+			matchwait 2
+	}
+	return
+}
+
+Manipulate.Assess:
+{
+	matchre Manipulate.Assess %Repeat
+	matchre return ^You assess your combat
+	send assess
+	matchwait 1
+	return
+}
+
+Manipulate.SetLimit:
+{
+	var Manipulate.Limit 1
+	return
+}
+
+Manipulate.Second:
+{
+	if matchre("$monsterlist", "\s(\w+)$") then 
+	{
+		pause 0.01
+			matchre Manipulate.Perform %Repeat
+			matchre return ^Manipulate what
+			matchre return suddenly ceases hostilities towards you\.$
+			matchre Manipulate.SetLimit ^You strain, but cannot extend your will any further.$
+			matchre return ^You're already manipulating 
+			send manipulate friendship second $1
+			matchwait 2
+	}
+	return
+}
+
+#####################
+#####################	Melee Hunting Cycle
+#####################
+
+Melee.StartOfHuntingCycle:
+{
+	if ($standing != 1) then GOSUB Stand
+	GOSUB Utility.React
+	GOSUB Utility.TimedEvents
+	GOSUB Utility.React
+	GOSUB Magic.Round
+	GOSUB SideWork.Melee
+	GOSUB Magic.Round
+	GOSUB Melee.Attack.Perform
+	GOSUB Magic.Round
+	GOSUB Melee.Attack.Perform
+	GOSUB Magic.Round
+	GOSUB Melee.Attack.Perform
+	GOSUB Magic.Round
+	GOSUB Melee.Attack.Perform
+	GOSUB Magic.Round
+	GOSUB Utility.React
+	GOSUB Utility.HandleAnyDeadMonsters
+	GOSUB Utility.React
+	return
+}
+
+Melee.Attack.Perform:
+{
+	GOSUB Utility.React
+	if ("$guild" = "Thief") and ($hidden = 1) then 
+	{
+		GOSUB Melee.Backstab
+	}
+	else 
+	{
+		if ("$guild" = "Paladin") and ("%currentSkill" != "Brawling") then
+		{
+			GOSUB Utility.Timer Smite 60 Melee.Smite
+		}
+		GOSUB Melee.Attack
+	}
+	GOSUB Melee.ResetAttackVar
+	return
+}
+
+
+
+Melee.ResetAttackVar:
+{
+	IF ("%currentSkill" = "Brawling") then
+	{
+		var attack attack
+	}
+	else
+	{
+		var attack attack
+		#var attack feint
+		GOSUB Sidework.Tactics
+	}
+	return
+}
+
+Melee.Backstab:
+{
+	pause 0.01
+	matchre Melee.Backstab %RepeatText
+	matchre Melee.Backstab.Advance You aren't close enough to attack|It would help if you were closer
+	matchre Sidework.Idle There is nothing|What are you|is flying too high for 
+	matchre Melee.Attack.WieldAndAttack ^Wouldn\'t it be better if you used a melee
+	matchre Melee.Attack.ConvertToGenericAttack ^You can not slam with
+	matchre Melee.Attack too clumsy for such a delicate maneuver|entirely unsuitable for blindsiding|^With your bare|need something a little|You must be hidden to 
+	matchre return Roundtime
+	if ($lefthandnoun = %weapon) or ($lefthand = %weapon) then
+	{
+		send backstab left
+	}
+	else
+	{
+		send backstab
+	}
+	matchwait 10
+	
+	# occasionally an attack command will simply hang - in such a case, fall through after 10 seconds and try again
+	goto Melee.Backstab
+}
+
+Melee.Smite:
+{
+	pause 0.01
+	matchre Melee.Smite.Advance You aren't close enough to attack|It would help if you were closer
+	matchre Sidework.Idle There is nothing|What are you|is flying too high for 
+	matchre Melee.Attack.WieldAndAttack ^Wouldn\'t it be better if you used a melee
+	matchre Melee.Attack.ConvertToGenericAttack ^You can not slam with
+	matchre Melee.Attack too clumsy for such a delicate maneuver|entirely unsuitable for blindsiding|^With your bare|need something a little|You must be hidden to 
+	matchre return Roundtime
+	if ($lefthandnoun = %weapon) or ($lefthand = %weapon) then
+	{
+		do swap;smite
+	}
+	else
+	{
+		do smite
+	}
+	matchwait 10
+	
+	# occasionally an attack command will simply hang - in such a case, fall through after 10 seconds and try again
+	goto Melee.Smite
+}
+
+Melee.Attack:
+{
+	pause 0.01
+	matchre Melee.Attack %RepeatText
+	matchre Melee.Advance You aren't close enough to attack.
+	matchre Sidework.Idle There is nothing|What are you|is flying too high for 
+	matchre Melee.Attack.WieldAndAttack ^Wouldn\'t it be better if you used a melee
+	matchre Melee.Attack.ConvertToGenericAttack ^You can not slam with
+	matchre return Roundtime
+	if ($lefthandnoun = %weapon) or ($lefthand = %weapon) or ("$righthand" = "empty") then
+	{
+		send feint left
+	}
+	else
+	{
+		send %attack
+	}
+	matchwait 10
+	
+	# occasionally an attack command will simply hang - in such a case, fall through after 10 seconds and try again
+	goto Melee.Attack
+}
+
+Melee.Attack.WieldAndAttack:
+{	
+	if ("%currentSkill" = "Brawling") then GOTO Melee.Attack.ConvertToGenericAttack
+	GOSUB Weapon.Wield
+	GOTO Melee.Attack
+}
+
+Melee.Attack.ConvertToGenericAttack:
+{
+	var attack attack
+	goto Melee.Attack
+}
+
+Melee.Advance:
+{
+	matchre Melee.Advance %RepeatText
+	send advance
+}
+
+Melee.Wait:
+{
+	waitforre (melee range on you!|You close to melee|^\[You\'re|advantage\.\]$|position\.\]$)
+	goto Melee.Attack
+}
+
+Melee.Backstab.Advance:
+{
+	matchre Melee.Backstab.Advance %RepeatText
+	send advance
+	matchwait 10
+	return
+}
+
+Melee.Smite.Advance:
+{
+	matchre Melee.Smite.Advance %RepeatText
+	send advance
+	matchwait 10
+	return
+}
+
+Melee.Backstab.Wait:
+{
+	waitforre (melee range on you!|You close to melee)
+	goto Melee.Backstab
+}
+
+Melee.Smite.Wait:
+{
+	waitforre (melee range on you!|You close to melee)
+	goto Melee.Smite
+}
+#####################
+#####################	Stance Shifting
+#####################
+
+Stance.Start:
+{
+	if (contains("%RangedSkills", %currentSkill) = 1) then
+	{
+		GOSUB Stance.Take Shield
+		return
+	}
+	else
+	{
+		GOSUB Stance.Take Evasion
+		return
+	}
+	
+	return
+}
+
+Stance.Take:
+{
+	matchre Stance.Take %RepeatText
+	matchre Return (You are now set to use)
+	send stance $1
+	matchwait 10
+	return
+}
+	
+
+
+#####################
+#####################	Ranged Hunting Cycle
+#####################
+
+Ranged.StartOfHuntingCycle:
+{
+	if ($standing != 1) then GOSUB Stand
+	GOSUB Utility.React
+	GOSUB Magic.Round
+	GOSUB Utility.React
+	GOSUB Utility.TimedEvents
+	GOSUB Magic.Round
+	GOSUB Utility.React
+	GOSUB Ranged.Load
+	GOSUB Magic.Round	
+	GOSUB Ranged.Aim
+	GOSUB Utility.React
+	GOSUB SideWork.Ranged
+	GOSUB Magic.Round
+	GOSUB Utility.React
+	GOSUB Ranged.TrainThrown
+	GOSUB Magic.Round
+	GOSUB Utility.React
+	GOSUB Ranged.Fire
+	GOSUB Utility.React
+	GOSUB Utility.HandleAnyDeadMonsters
+	GOSUB Utility.React
+	GOSUB Ranged.RetrieveArrows
+	GOSUB Utility.React
+	return
+}
+
+Ranged.TrainThrown:
+{
+	if ($Enescu.Weapons.Light_Thrown.Enabled = 1) and ($Light_Thrown.LearningRate < %LearningRateAtWhichToSwapWeapons) and ($Light_Thrown.Ranks < $Enescu.Hunting.MaxRanks) then
+	{
+		GOSUB Ranged.Thrown.Start $Enescu.Weapons.Light_Thrown.Noun
+	} 
+	else 
+	{	
+		GOSUB Magic.Round 
+	}
+	if ($Enescu.Weapons.Heavy_Thrown.Enabled = 1) and ($Heavy_Thrown.LearningRate < %LearningRateAtWhichToSwapWeapons) and ($Heavy_Thrown.Ranks < $Enescu.Hunting.MaxRanks) then
+	{
+		GOSUB Ranged.Thrown.Start $Enescu.Weapons.Heavy_Thrown.Noun
+	}
+	else 
+	{	
+		GOSUB Magic.Round 
+	}
+	
+	return
+}
+
+Ranged.Debilitation.Start:
+{
+	if ($Enescu.Magic.Debilitation.Charge.Count > 0) then 
+	{
+		GOSUB Magic.ChargeCambrinth $Enescu.Magic.Cambrinth.Noun $Enescu.Magic.Debilitation.Charge.Amount
+		GOSUB Magic.Invoke $Enescu.Magic.Cambrinth.Noun
+	}
+}
+Ranged.Debilitation.Prepare:
+{
+	matchre Ranged.Debilitation.Start %RepeatText
+	matchre return $PrepText|^You are already preparing|^You have already
+	send prepare $Enescu.Magic.Debilitation.Spell $Enescu.Magic.Debilitation.Amount
+	matchwait 3
+	return
+}
+
+Ranged.RetrieveArrows.StowLeft:
+{
+	matchre Ranged.RetrieveArrows.StowLeft %RepeatText
+	matchre Ranged.RetrieveArrows ^You put
+	send stow left
+	matchwait 2
+}
+
+Ranged.RetrieveArrows:
+{
+	matchre Ranged.RetrieveArrows %RepeatText|^You pick up|^You put your|^As you reach
+	matchre Ranged.RetrieveArrows.StowLeft ^You need a free hand
+	matchre return ^Stow what
+	send stow %ammo 
+	matchwait 1
+	goto Ranged.RetrieveArrows
+}
+
+Ranged.Load:
+{
+	matchre Ranged.Load %RepeatText
+	matchre Ranged.OpenQuiver (your hand jams into its closed cover)
+	matchre Ranged.OutOfAmmo (You don't have the proper ammunition)
+	matchre Ranged.AmmoOnGround must be in your inventory to be loaded 
+	matchre Ranged.Wield ^(You need to hold|What weapon are you)
+	matchre return (Roundtime|already loaded)
+	send load my $righthandnoun with my %ammo
+	matchwait 3
+	goto Ranged.Load
+}
+
+Ranged.AmmoOnGround:
+{
+	gosub Ranged.RetrieveArrows
+	goto Ranged.Load
+}
+
+Ranged.OpenQuiver:
+{
+	send open my quiver
+	goto Ranged.Load
+}
+
+Ranged.Retreat:
+{
+	if ($guild = Barbarian) then
+	{
+		##never retreat on your barb, it kills your inner fire
+		return
+	}
+	matchre Ranged.Retreat %RepeatText
+	matchre return (You are already|^You retreat|Roundtime|You stop advancing)
+	send retreat
+	matchwait
+
+}
+
+Ranged.Fire:
+{
+	matchre Ranged.Fire %RepeatText|must be in your right hand
+	matchre Sidework.Idle ^(There is nothing else|I could not find what you|Face what\?)
+	matchre return Roundtime|isn\'t loaded\!
+	if ($hidden = 1) then
+	{
+		send poach
+	}
+	else
+	{
+		send fire
+	}
+	matchwait
+}
+
+Ranged.Aim:
+{
+	matchre Ranged.Aim %RepeatText
+	matchre Sidework.Idle (There is nothing else to face!)
+	matchre Ranged.Load (isn't loaded!)
+	matchre return You begin to target|already targetting|You shift
+	send aim
+	matchwait 1
+	goto Ranged.Aim
+}
+
+
+Ranged.Wield:
+{
+	GOSUB Weapon.Wield
+	goto Ranged.Load
+}
+
+Ranged.OutOfAmmo:
+{
+	ECHO Well that's unfortunate. You seem to be out of ammo.
+	GOSUB Utility.DisableSkillForSession %currentSkill
+	GOSUB clear
+	GOSUB Hunt.Start
+}
+
+Ranged.Thrown.Start:
+{
+	GOSUB Ranged.Thrown.Ready $1
+	GOSUB Ranged.Thrown.Attack $1
+	GOSUB Ranged.Thrown.Stow $1
+	return
+}
+
+Ranged.Thrown.Ready:
+{
+	var Ranged.Thrown.Ready.Noun $1
+	Ranged.Thrown.Ready.Internal:
+	matchre Ranged.Thrown.Ready.Internal %RepeatText
+	matchre return ^You pick up|^You pull|^You get|^You draw
+	send get my %Ranged.Thrown.Ready.Noun
+	matchwait 3
+	return
+}
+
+Ranged.Thrown.Attack:
+{
+	matchre Ranged.Thrown.Attack %RepeatText
+	matchre Ranged.Thrown.Ready ^What are you trying to 
+	matchre Ranged.Thrown.Stow ^(You must|There is nothing)
+	matchre return Roundtime
+	send lob left
+	matchwait 2
+	goto Ranged.Thrown.Attack
+}
+
+Ranged.Thrown.Stow:
+{
+	var throwntostow $1
+	Ranged.Thrown.Stow.Internal:
+	matchre Ranged.Thrown.Stow.Internal ^%RepeatText|You pick up|You put your
+	matchre Ranged.Thrown.Stow.StowLeft ^You need a free hand
+	matchre return ^Stow what\?
+	send stow %throwntostow
+	matchwait 1
+	return
+}
+
+Ranged.Thrown.Stow.StowLeft:
+{
+	matchre Ranged.Thrown.Stow.StowLeft %RepeatText
+	matchre Ranged.Thrown.Stow.Internal ^You put
+	send stow left
+	matchwait 1
+	goto Ranged.Thrown.Stow.Internal
+}
+
+##############
+#SIDEWORK 
+#######
+
+Sidework.Melee:
+{
+	var consecutiveSkips 0
+	Sidework.Melee.Loop:
+	var SideworkSkipped 0
+	math Sidework.Position add 1
+	if (%Sidework.Position <= count("%SideworkSkillsMelee", "|")) then
+	{
+		GOSUB Sidework.Skill %SideworkSkillsMelee(%Sidework.Position)
+		if ("%SideworkSkipped" = "1") or ("%TimerSkipped" = "1") then 
+		{
+			math consecutiveSkips add 1
+			var TimerSkipped 0
+			
+			if (%consecutiveSkips > count("%SideworkSkillsMelee", "|")) then 
+			{
+				var consecutiveSkips 0
+				return
+			}
+			
+			goto Sidework.Melee.Loop
+		}
+		else 
+		{
+			var consecutiveSkips 0
+		}
+	}
+	else
+	{
+		var Sidework.Position -1
+		goto Sidework.Melee.Loop
+	}
+
+	return
+}
+
+Sidework.Ranged:
+{
+	var consecutiveSkips 0
+	Sidework.Ranged.Loop:
+	var SideworkSkipped 0
+	math Sidework.Position add 1
+	if (%Sidework.Position <= count("%SideworkSkillsRanged", "|")) then
+	{
+		GOSUB Sidework.Skill %SideworkSkillsRanged(%Sidework.Position)
+		if ("%SideworkSkipped" = "1") or ("%TimerSkipped" = "1") then 
+		{
+			math consecutiveSkips add 1
+			var TimerSkipped 0
+			
+			if (%consecutiveSkips > count("%SideworkSkillsRanged", "|")) then 
+			{
+				var consecutiveSkips 0
+				return
+			}
+			
+			goto Sidework.Ranged.Loop
+		}
+		else 
+		{
+			var consecutiveSkips 0
+		}
+	}
+	else
+	{
+		var Sidework.Position -1
+		goto Sidework.Ranged.Loop
+	}
+	
+	return
+}
+
+Sidework.Manipulation:
+{
+	var consecutiveSkips 0
+	Sidework.Manipulation.Loop:
+	var SideworkSkipped 0
+	math Sidework.Position add 1
+	if (%Sidework.Position <= count("%SideworkSkillsManipulation", "|")) then
+	{
+		GOSUB Sidework.Skill %SideworkSkillsManipulation(%Sidework.Position)
+		if ("%SideworkSkipped" = "1") or ("%TimerSkipped" = "1") then 
+		{
+			math consecutiveSkips add 1
+			var TimerSkipped 0
+			
+			if (%consecutiveSkips > count("%SideworkSkillsManipulation", "|")) then 
+			{
+				var consecutiveSkips 0
+				return
+			}
+			
+			goto Sidework.Manipulation.Loop
+		}
+		else 
+		{
+			var consecutiveSkips 0
+		}
+	}
+	else
+	{
+		var Sidework.Position -1
+		goto Sidework.Manipulation.Loop
+	}
+
+	return
+}
+
+
+Sidework.Idle:
+{
+	var consecutiveSkips 0
+	Sidework.Idle.Loop:
+	GOSUB Utility.HandleAnyDeadMonsters
+	if ($hidden = 1) then send unhide
+	var SideworkSkipped 0
+	var TimerSkipped 0
+	math Sidework.Position add 1
+	if (%Sidework.Position <= count("%SideworkSkillsIdle", "|")) then
+	{
+		GOSUB Sidework.Skill %SideworkSkillsIdle(%Sidework.Position)
+		if ("%SideworkSkipped" = "1") or ("%TimerSkipped" = "1") then 
+		{
+			math consecutiveSkips add 1
+			var TimerSkipped 0
+			
+			if (%consecutiveSkips > count("%SideworkSkillsIdle", "|")) then 
+			{
+				var consecutiveSkips 0
+				return
+			}
+			goto Sidework.Idle.Loop
+		}
+		else 
+		{
+			var consecutiveSkips 0
+		}
+	}
+	else
+	{
+		var Sidework.Position -1
+		goto Sidework.Idle.Loop
+	}
+	return
+}
+
+Sidework.Skill:
+{
+	var CurrentSidework $1
+	GOSUB Sidework.%CurrentSidework
+	return
+}
+
+Sidework.Appraisal:
+{
+	if ($Appraisal.LearningRate < %LearningRateAtWhichToSwapWeapons) and ($Appraisal.Ranks < $Enescu.Hunting.MaxRanks) then 
+	{
+		GOSUB Utility.Timer Enescu.HuntTimers.Appraisal 81 Appraisal.Critter
+	}
+	else 
+	{
+		var SideworkSkipped 1
+	}
+	return
+}
+
+Sidework.Attunement:
+{
+	if !matchre("$guild", "Thief|Barbarian|Commoner") and ($Attunement.LearningRate < %LearningRateAtWhichToSwapWeapons) and ($Attunement.Ranks < $Enescu.Hunting.MaxRanks) then 
+	{
+		
+		if !matchre("$guild", "Moon Mage|Trader") then 
+		{
+			GOSUB Utility.Timer Enescu.HuntTimers.Attunement 61 attunement.Round
+		}
+		else
+		{
+			GOSUB attunement.Round
+		}
+	}
+	else 
+	{
+		var SideworkSkipped 1
+	}
+	return
+}
+
+Sidework.Perception:
+{
+	if ($Perception.LearningRate < %LearningRateAtWhichToSwapWeapons) and ($Perception.Ranks < $Enescu.Hunting.MaxRanks) then 
+	{
+		GOSUB Utility.Timer Enescu.HuntTimers.Hunt 61 Sidework.Hunt
+	}
+	else 
+	{
+		var SideworkSkipped 1
+	}
+	return
+}
+
+Sidework.Hunt:
+{
+	pause 0.01
+	matchre Sidework.Hunt %RepeatText
+	matchre return ^(Roundtime|You find yourself unable to hunt in this area.)
+	send Hunt
+	matchwait 2
+	return
+}
+
+Sidework.Tactics:
+{
+	if ($Tactics.LearningRate < %LearningRateAtWhichToSwapWeapons) and ($Tactics.Ranks < $Enescu.Hunting.MaxRanks) then 
+	{
+		GOSUB Utility.Analyze
+	}
+	else 
+	{
+		var SideworkSkipped 1
+	}
+	return
+}
+
+Sidework.FirstAid:
+{
+	if ($First_Aid.LearningRate < %LearningRateAtWhichToSwapWeapons) and ($First_Aid.Ranks < $Enescu.Hunting.MaxRanks) and ("$Enescu.FirstAid.Compendium.Enabled" = "1") then
+	{
+		GOSUB Get $Enescu.FirstAid.Compendium.Noun
+		GOSUB First_Aid.Round
+		GOSUB Stow $Enescu.FirstAid.Compendium.Noun
+	}
+	else 
+	{
+		var SideworkSkipped 1
+	}
+	return
+}
+
+Sidework.Locksmithing:
+{
+	if ($Locksmithing.LearningRate < %LearningRateAtWhichToSwapWeapons) and ($Locksmithing.Ranks < $Enescu.Hunting.MaxRanks) and ("$Enescu.Locksmithing.Trainer.Enabled" = "1") then
+	{
+		if ("%trainingBoxDone" = "1") then return
+		GOSUB Get "$Enescu.Locksmithing.Trainer.Noun"
+		GOSUB locksmithing.Round
+		GOSUB Stow "$Enescu.Locksmithing.Trainer.Noun"
+	}
+	else 
+	{
+		var SideworkSkipped 1
+	}
+	return
+}
+
+Sidework.Outdoorsmanship:
+{
+	if ($Outdoorsmanship.LearningRate < %LearningRateAtWhichToSwapWeapons) and ($Outdoorsmanship.Ranks < $Enescu.Hunting.MaxRanks) then
+	{
+		GOSUB Outdoorsmanship.Round
+	}
+	return
+}
+
+Sidework.Stealth:
+{
+	if ("$guild" != "Paladin") and ($Stealth.LearningRate < %LearningRateAtWhichToSwapWeapons) and ($Stealth.Ranks < $Enescu.Hunting.MaxRanks) and ("%guild" != "Paladin") then 
+	{
+		GOSUB Sidework.Stealth.Hide								
+	}
+	else 
+	{
+		var SideworkSkipped 1
+	}
+	return
+}
+
+Sidework.Stealth.Hide:
+{
+	matchre Sidework.Stealth.Hide %RepeatText
+	matchre return Roundtime|Eh\?
+	send hide
+	matchwait 2
+	return 
+}
+
+
+Sidework.Brawling:
+{
+	if ($Brawling.LearningRate < %LearningRateAtWhichToSwapWeapons) and ($Brawling.Ranks < $Enescu.Hunting.MaxRanks) then
+	{
+		math Brawl.Position add 1
+		if (%Brawl.Position <= count("%BrawlCommands", "|")) then
+		{
+			GOSUB Sidework.Brawling.Attack %BrawlCommands(%Brawl.Position)
+		}
+		else
+		{
+			var Brawl.Position -1
+			goto Sidework.Brawling
+		}
+	}
+	else 
+	{
+		var SideworkSkipped 1
+	}
+	return
+}
+
+Sidework.Brawling.Attack:
+{
+	var brawlcommand $1
+	Sidework.Brawling.Attack.Internal:
+	pause 0.1
+	matchre Sidework.Brawling.Attack.Internal %RepeatText
+	matchre return ^You aren\'t close enough to attack|^There is nothing|^What are you|is flying too high for|^Roundtime
+	send %brawlcommand
+	matchwait 5
+	
+	# occasionally an attack command will simply hang - in such a case, fall through after 5 seconds and try again
+	goto Sidework.Brawling.Attack.Internal
+}
+
+Sidework.Guild:
+{
+	if ("$guild" = "Bard") then GOSUB Sidework.Guild.Bard
+	else if ("$guild" = "Cleric") then GOSUB Sidework.Guild.Cleric
+	else 
+	{
+		var SideworkSkipped 1
+	}
+	return
+}
+
+Sidework.GuildIdle:
+{
+
+	if ("$guild" = "Moon Mage") then GOSUB Sidework.GuildIdle.MoonMage
+	return
+}
+
+##############
+#GUILD SPECIFIC ACTIONS
+#######
+
+Sidework.GuildIdle.MoonMage:
+{
+	GOSUB Astrology.TrainIfReady
+	return
+}
+
+Sidework.Guild.Bard:
+{
+	if ($Bardic_Lore.LearningRate < 34) then
+	{
+		if ("Bard.Havoc" = "1") then
+		{
+			GOSUB Bard.Scream HAVOC
+			var Bard.Havoc 0
+		} 
+		else if ("Bard.Concussive" = "1") then
+		{
+			GOSUB Bard.Scream CONCUSSIVE
+			var Bard.Concussive 0
+		}
+	}
+	else 
+	{
+		var SideworkSkipped 1
+	}
+	return
+}
+
+Bard.Scream:
+{
+	var Bard.ScreamCommand $1
+	Bard.Scream.Internal:
+	{
+		pause 0.1
+		matchre Bard.Scream.Internal %RepeatText
+		matchre return ^(Roundtime|roundtime)
+		send scream %Bard.ScreamCommand
+		matchwait 2
+	}
+	return
+}
+
+Sidework.Guild.Cleric:
+{
+	if ($Theurgy.LearningRate < 34) then
+	{
+		GOSUB Utility.Timer Enescu.HuntTimers.Cleric.Pray 81 "Sidework.Guild.Cleric.Pray tenemlor"
+		GOSUB Utility.Timer Enescu.HuntTimers.Cleric.Badge 1201 Sidework.Guild.Cleric.Badge
+	}
+	else 
+	{
+		var SideworkSkipped 1
+	}
+	return
+}
+
+Sidework.Guild.Cleric.Pray:
+{
+	var SideworkClericPrayTarget $1
+	Sidework.Guild.Cleric.Pray.Internal:
+	pause 0.01
+	matchre Sidework.Guild.Cleric.Pray.Internal %RepeatText
+	matchre return ^\[Praying for
+	send pray %SideworkClericPrayTarget
+	matchwait 10
+	return
+}
+
+Sidework.Guild.Cleric.Badge:
+{
+	GOSUB Remove badge
+	GOSUB Sidework.Guild.Cleric.Pray badge
+	GOSUB Wear badge
+	return
+}
+
+
+
+# The tarantula is current set to consume Defending experience and when last us# ed gave unbidden knowledge of Armors techniques.
+

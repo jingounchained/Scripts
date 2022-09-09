@@ -1,0 +1,16 @@
+Athletics.Start:
+{
+	if ($Enescu.Athletics.ClimbingRope.Enabled = 1) then
+	{
+		GOSUB StowHands
+		gosub Get "$Enescu.Athletics.ClimbingRope.Noun"
+	}
+	return
+}
+
+Perception.Start:
+Perception.Round:
+{
+	GOSUB Outdoorsmanship.Start
+	return
+}

@@ -1,0 +1,106 @@
+skill_manager.init:
+{
+
+	var RateToTrainTo 2
+	var IncrementToStepUp 2
+	action var LowestSkill $1 when ^EXPTRACKER (\w+)$
+	timer clear
+	return
+}
+
+skill_manager.GetLowestSkill:
+{
+	put /track lowest $0
+	return 
+}
+
+skill_manager.IncrementTrainingRate:
+{
+	math RateToTrainTo add %IncrementToStepUp
+	if (%RateToTrainTo > 34) then var RateToTrainTo 34
+	return
+}
+
+skill_manager.GetNextResearch:
+{
+	var NextSkill 0
+	GOSUB skill_manager.CompareAbsolute Augmentation
+	GOSUB skill_manager.CompareAbsolute Utility
+	GOSUB skill_manager.CompareAbsolute Warding
+	GOSUB skill_manager.CompareAbsolute Sorcery
+	GOSUB skill_manager.CompareAbsolute Attunement
+	GOSUB skill_manager.CompareAbsolute Primary_Magic
+	if ("$guild" = "Moon Mage") then GOSUB skill_manager.GlobalTimedCompare 86400 Astrology Enescu.Research.Plane
+	if ("$guild" = "Warrior Mage") then GOSUB skill_manager.GlobalTimedCompare 86400 Summoning Enescu.Research.Planes
+	var Research.Skill %NextSkill
+	return
+}
+
+skill_manager.TimedCompare:
+{
+	if ("%$2.Time" = "\%$2.Time") then var $2.Time 0
+	evalmath elapsedTime ($gametime - %$2.Time)
+	if (%elapsedTime > $1) then
+	{
+		GOSUB skill_manager.Compare $2
+	}
+	return
+}
+
+skill_manager.GlobalTimedCompare:
+{
+	if !def($3.Time) then put #var $3.Time 0
+	evalmath elapsedTime ($gametime - $$3.Time)
+	if (%elapsedTime > $1) then
+	{
+		GOSUB skill_manager.Compare $2
+	}
+	return
+}
+
+
+skill_manager.CompareThreshhold:
+{
+	IF ($$1.LearningRate < 2) THEN
+	{
+		IF (%NextSkill = 0) then
+		{
+			var NextSkill $2
+		}
+		else if ($$2.LearningRate < $%NextSkill.LearningRate) then
+		{
+			var NextSkill $2
+		}
+	}
+	return
+}
+
+skill_manager.Compare:
+{
+	IF ($$1.LearningRate < %RateToTrainTo) THEN
+	{
+		IF (%NextSkill = 0) then
+		{
+			var NextSkill $1
+		}
+		else if ($$1.LearningRate < $%NextSkill.LearningRate) then
+		{
+			var NextSkill $1
+		}
+	}
+	return
+}
+
+skill_manager.CompareAbsolute:
+{
+
+	IF (%NextSkill = 0) then
+	{
+		var NextSkill $1
+	}
+	else if ($$1.LearningRate < $%NextSkill.LearningRate) then
+	{
+		var NextSkill $1
+	}
+	return
+}

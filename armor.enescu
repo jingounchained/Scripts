@@ -1,0 +1,58 @@
+gosub init
+goto start
+
+init:
+{
+	var index -1
+	var RepeatText ^...wait|^Sorry, you may only type ahead|^You are still stunned.
+	eval total count("($Enescu.Armor)","|")
+	return
+}
+
+return:
+{
+	return
+}
+
+start:
+{
+	math index add 1
+	if (toupper(%1) = REMOVE) then GOSUB Remove $Enescu.Armor(%index)
+	if (toupper(%1) = WEAR) then GOSUB Wear $Enescu.Armor(%index)
+	if %index = %total then 
+	{
+		send i armor
+		exit 
+	}
+	goto start
+}
+
+Remove:
+{
+	var CurrentItem $0
+	Remove.Inner:
+	matchre Remove.Inner %RepeatText
+	matchre return ^You work your way|^You slide your|^You put your
+	matchre itemNotFound ^Remove what?
+	send remove my %CurrentItem;stow my %CurrentItem
+	matchwait
+	return
+}
+
+Wear:
+{
+	var CurrentItem $0
+	Wear.Inner:
+	matchre Wear.Inner %RepeatText
+	matchre return ^You work your way|^You slide your|You get|^But that is already
+	matchre itemNotFound ^What were you referring to?
+	send get my %CurrentItem;wear my %CurrentItem
+	matchwait
+	return
+}
+
+itemNotFound:
+{
+	echo Could not find your %CurrentItem!
+	return
+}

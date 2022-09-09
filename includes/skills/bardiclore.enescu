@@ -1,0 +1,22 @@
+bardiclore.Init:
+{
+	action var BluffAmaze.Ready 1 when ^You waver a bit as the charismatic confidence 
+	var BluffAmaze.Ready 1
+	return
+}
+
+Bardic_Lore.Start:
+Bardic_Lore.Round:
+{
+	if (%BluffAmaze.Ready = 1) then GOSUB Bardic_Lore.BluffAmaze
+	if (%CurrentPrimarySkill = Bardic_Lore) then var CurrentRoundFinished 1
+	
+	return
+}
+
+Bardic_Lore.BluffAmaze:
+{
+	GOSUB utility.Command "bluff amaze" "^(Roundtime|Sheesh)"
+	var BluffAmaze.Ready 0
+	return
+}

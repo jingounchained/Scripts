@@ -1,0 +1,42 @@
+
+put #var SpellTimer.$Enescu.Buffs.0.BuffSpellTimerName.active 0
+put #var SpellTimer.$Enescu.Buffs.1.BuffSpellTimerName.active 0
+put #var SpellTimer.$Enescu.Buffs.2.BuffSpellTimerName.active 0
+put #var SpellTimer.$Enescu.Buffs.3.BuffSpellTimerName.active 0
+put #var SpellTimer.$Enescu.Buffs.4.BuffSpellTimerName.active 0
+put #var SpellTimer.$Enescu.Buffs.5.BuffSpellTimerName.active 0
+put #var SpellTimer.$Enescu.Buffs.6.BuffSpellTimerName.active 0
+put #var SpellTimer.$Enescu.Buffs.7.BuffSpellTimerName.active 0
+put #var SpellTimer.$Enescu.Buffs.8.BuffSpellTimerName.active 0
+put #var SpellTimer.$Enescu.Buffs.9.BuffSpellTimerName.active 0
+put #var SpellTimer.$Enescu.Buffs.10.BuffSpellTimerName.active 0
+put #var SpellTimer.$Enescu.Buffs.11.BuffSpellTimerName.active 0
+put #var SpellTimer.$Enescu.Buffs.12.BuffSpellTimerName.active 0
+put #var SpellTimer.$Enescu.Buffs.13.BuffSpellTimerName.active 0
+put #var SpellTimer.$Enescu.Buffs.14.BuffSpellTimerName.active 0
+put #var SpellTimer.$Enescu.Buffs.15.BuffSpellTimerName.active 0
+put #var SpellTimer.$Enescu.Buffs.16.BuffSpellTimerName.active 0
+put #var SpellTimer.$Enescu.Buffs.17.BuffSpellTimerName.active 0
+
+
+
+put #var SpellTimer.$Enescu.Buffs.0.BuffSpellTimerName.duration 0
+put #var SpellTimer.$Enescu.Buffs.1.BuffSpellTimerName.duration 0
+put #var SpellTimer.$Enescu.Buffs.2.BuffSpellTimerName.duration 0
+put #var SpellTimer.$Enescu.Buffs.3.BuffSpellTimerName.duration 0
+put #var SpellTimer.$Enescu.Buffs.4.BuffSpellTimerName.duration 0
+put #var SpellTimer.$Enescu.Buffs.5.BuffSpellTimerName.duration 0
+put #var SpellTimer.$Enescu.Buffs.6.BuffSpellTimerName.duration 0
+put #var SpellTimer.$Enescu.Buffs.7.BuffSpellTimerName.duration 0
+put #var SpellTimer.$Enescu.Buffs.8.BuffSpellTimerName.duration 0
+put #var SpellTimer.$Enescu.Buffs.9.BuffSpellTimerName.duration 0
+put #var SpellTimer.$Enescu.Buffs.10.BuffSpellTimerName.duration 0
+put #var SpellTimer.$Enescu.Buffs.11.BuffSpellTimerName.duration 0
+put #var SpellTimer.$Enescu.Buffs.12.BuffSpellTimerName.duration 0
+put #var SpellTimer.$Enescu.Buffs.13.BuffSpellTimerName.duration 0
+put #var SpellTimer.$Enescu.Buffs.14.BuffSpellTimerName.duration 0
+put #var SpellTimer.$Enescu.Buffs.15.BuffSpellTimerName.duration 0
+put #var SpellTimer.$Enescu.Buffs.16.BuffSpellTimerName.duration 0
+put #var SpellTimer.$Enescu.Buffs.17.BuffSpellTimerName.duration 0
+
+

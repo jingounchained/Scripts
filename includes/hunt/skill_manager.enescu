@@ -1,0 +1,73 @@
+skill_manager.GetNextPrimarySkill:
+{
+	var NextSkill 0
+	
+	GOSUB skill_manager.Compare Small_Edged
+	GOSUB skill_manager.Compare Large_Edged
+	GOSUB skill_manager.Compare Twohanded_Edged
+	GOSUB skill_manager.Compare Small_Blunt
+	GOSUB skill_manager.Compare Large_Blunt
+	GOSUB skill_manager.Compare Twohanded_Blunt
+	GOSUB skill_manager.Compare Slings
+	GOSUB skill_manager.Compare Bow
+	GOSUB skill_manager.Compare Crossbow
+	GOSUB skill_manager.Compare Staves
+	GOSUB skill_manager.Compare Polearms
+	
+	if ($Enescu.Outdoorsmanship.Collect.Enabled = 1) then gosub skill_manager.Compare Outdoorsmanship
+
+	if ("$guild" = "Moon Mage") or ("$guild" = "Trader") then GOSUB skill_manager.Compare Attunement
+	gosub skill_manager.TimedCompare 61 Appraisal
+	GOSUB skill_manager.CheckGuildPrimarySkills
+	var CurrentPrimarySkill %NextSkill
+	unvar NextSkill
+	
+	if (%CurrentPrimarySkill = 0) then
+	{
+		if (%RateToTrainTo = 34) then
+		{
+			GOSUB TheEpicConclusion
+			GOTO start
+		}
+		else
+		{
+			GOSUB skill_manager.IncrementTrainingRate
+			GOTO skill_manager.GetNextPrimarySkill
+		}
+	}
+	return
+}
+
+skill_manager.GetNextSecondarySkill:
+{
+	var NextSkill 0
+	if ("$guild" = "Moon Mage") or ("$guild" = "Trader") then 
+	{
+		GOSUB skill_manager.Compare Attunement
+	}
+	else
+	{
+		gosub skill_manager.TimedCompare 61 Attunement
+	}	
+	gosub skill_manager.TimedCompare 61 Appraisal
+	if ($Enescu.Locksmithing.Trainer.Enabled = 1) and (%trainingBoxDone = 0) then gosub skill_manager.Compare Locksmithing
+	GOSUB skill_manager.Compare Brawling
+	if ($Enescu.FirstAid.Compendium.Enabled = 1 and (%compendium.cooldown <> 1) then gosub skill_manager.Compare First_Aid
+	var CurrentSecondarySkill %NextSkill
+	unvar NextSkill
+	
+	if (%CurrentSecondarySkill = 0) then
+	{
+		var CurrentSecondarySkill Stealth
+	}
+	
+	return
+}
+
+
+skill_manager.CheckGuildPrimarySkills:
+{
+	if ("$guild" = "Bard") and (%BluffAmaze.Ready = 1) then GOSUB skill_manager.Compare Bardic_Lore
+	
+	return
+}

@@ -1,0 +1,8 @@
+Empathy.Init:
+{
+		action var Manipulate.Targets 0 when ^You assess your combat situation
+		action var math Manipulate.Targets add 1 when friendly and(?:.*) range.$
+		action var math Manipulate.Targets add -1 when ^You feel your link with (?:.*) suddenly break!
+		var Manipulate.Limit 2
+		return
+}

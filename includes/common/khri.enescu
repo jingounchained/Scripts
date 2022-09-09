@@ -1,0 +1,20 @@
+khri.INIT:
+{
+	var Augmentation.Time 0
+	var Utility.Time 0
+	var Warding.Time 0
+	return
+}
+
+khri:
+{
+	var khri.name $1
+	khri.internal:
+	{
+		matchre khri.internal %Repeat
+		matchre return ^(Roundtime|You\'re already)
+		send khri %khri.name
+		matchwait 5
+	}
+	return
+}

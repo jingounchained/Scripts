@@ -1,0 +1,15 @@
+Trader.Init:
+{
+
+	var Trader.Perceive.Stream Illusion|Fabrication|Noematics|Planets|Xibar|Yavash|Katamba
+	var Trader.Perceive.Position -1
+	return
+}
+
+Trader.Perceive:
+{
+	math Trader.Perceive.Position add 1
+	if (%Trader.Perceive.Position >= 7) then var Trader.Perceive.Position 0
+	var perceive power %Trader.Perceive.Stream(%Trader.Perceive.Position)
+	return
+}

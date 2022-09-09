@@ -1,0 +1,216 @@
+###############
+#MOON MAGE - ASTROLOGY
+###############
+
+###############
+#Initialization
+###############
+
+Astrology.Init:
+{
+	
+	###############
+	# Array Variables
+	# It's very important these are indexed correctly
+	###############
+	
+	var Astrology.Star.Circle 90|85|80|75|70|65|60|55|52|49|46|43|44|41|40|35|27|21|18|13|12|4|2|1|1|1|1
+	var Astrology.Star.Name Er'qutra|Dawgolesh|Amlothi|Morleena|Ismenia|Merewalda|Szeldia|Penhetia|Yoakena|Durgaulda|Estrilda|Verena|Toad|Giant|Spider|Adder|Phoenix|Viper|Magpie|Ram|Cat|Raven|Wolf|Yavash|Xibar|Katamba|Elanthian Sun
+	var Astrology.Star.Position -1
+	var Astrology.Inside FALSE
+	var Astrology.Ready TRUE
+	
+
+	###############
+	# Actions
+	###############
+	action (Astrology) var Astrology.Ready TRUE when ^You feel you have sufficiently pondered your latest observation.
+	action (Astrology) var Astrology.Ready FALSE when ^You have not pondered your last observation sufficiently.
+	echo Astrology Module Initialized
+	return
+}
+
+Astrology.Config:
+{
+	return
+}
+
+
+Astrology.TrainIfReady:
+{
+	if ("%Astrology.Ready" = "TRUE") and ("%Astrology.Inside" != "TRUE") then GOSUB Astrology.Start
+	return
+}
+
+Astrology.Start:
+{
+	var Astrology.Star.Position -1
+	if ("%Astrology.Inside" = "TRUE") then var CurrentRoundFinished 1
+	GOSUB Astrology.Round
+	return
+}	
+
+Astrology.Round:
+{
+	GOSUB Astrology.OBSERVE
+	
+	var Astrology.Ready FALSE
+	GOSUB Astrology.CheckState
+
+	var CurrentRoundFinished 1
+	send predict weather
+	return
+}
+	
+Astrology.OBSERVE:
+{
+	if ($Enescu.Guilds.MoonMage.PiercingGaze.Amount > 0) then GOSUB Astrology.CASTPG
+	GOSUB StowHands
+	GOSUB Astrology.GetTelescope
+	GOSUB Astrology.CenterTelescope
+	if ("%Astrology.Inside" = "TRUE") then return
+	GOSUB Astrology.PeerTelescope
+	return
+}
+
+Astrology.CASTPG:
+{
+	if ($Enescu.Guilds.MoonMage.PiercingGaze.Amount > 0)  AND ($SpellTimer.PiercingGaze.duration < 6) then 
+	{
+		GOSUB Cast PG $Enescu.Guilds.MoonMage.PiercingGaze.Amount "" 0 0
+	}
+	return
+}
+
+
+Astrology.GetTelescope:
+{
+	GOSUB Get telescope
+	send open my telescope
+	pause .01
+	return
+}
+
+Astrology.CenterTelescope:
+{
+	pause 1
+	math Astrology.Star.Position add 1
+	if (%Astrology.Star.Circle(%Astrology.Star.Position) <= $circle) then
+	{
+		matchre Astrology.CenterTelescope %Repeat|turns up fruitless.|too close to the sun 
+		matchre Astrology.CannotSeeSky ^(a bit tough|The pain is too much\.)
+		send center my telescope on %Astrology.Star.Name(%Astrology.Star.Position)
+		matchwait 2
+	}
+	else
+	{
+		goto Astrology.CenterTelescope
+	}
+	return
+}
+	
+Astrology.CastPGAndTryAgain:
+{
+	GOSUB Astrology.CASTPG
+	goto Astrology.PeerTelescope
+}
+	
+Astrology.PeerTelescope:
+{
+	MATCHRE Astrology.PeerTelescope %Repeat|You see nothing regarding the future.
+	MATCHRE Return (You learned something useful from your observation.|You are unable to make use of this latest observation.|learned from your observation.|Too many futures cloud your mind|Although you were nearly overwhelmed)
+	MATCHRE Astrology.CastPGAndTryAgain should appear.
+	MATCHRE Astrology.MakeDayTimeObservation foiled by the daylight.
+	MATCHRE Astrology.CenterTelescope peer aimlessly|Your search for (.*) turns up fruitless.|too close to the sun
+	MATCHRE Astrology.CannotSeeSky way too dim to try
+	send peer my telescope
+	matchwait
+}
+
+Astrology.MakeDayTimeObservation:
+{
+	var star.position 22
+	GOSUB Astrology.CenterTelescope
+	GOSUB Astrology.PeerTelescope
+	return
+}
+	
+Astrology.StoreTelescope:
+{
+	pause 1
+	if ($Enescu.Guilds.MoonMage.Telescope.Container = STOW) then
+	{
+		var Astrology.StowTelescope stow my telescope
+	}
+	else	
+	{
+		var Astrology.StowTelescope put my telescope in my $Enescu.Guilds.MoonMage.Telescope.Container
+	}
+	matchre Astrology.StoreTelescope %Repeat
+	matchre Return (You put|already|What were you)
+	send close my telescope;%Astrology.StowTelescope
+	matchwait
+}
+	
+Astrology.CheckState:
+{
+	GOSUB Astrology.StoreTelescope
+	var Astrology.PredictionPool Lore
+	if ($Astrology.LearningRate < 30) then GOSUB Astrology.CheckPrediction Lore
+	var Astrology.PredictionPool Magic
+	if ($Astrology.LearningRate < 30) then GOSUB Astrology.CheckPrediction Magic
+	var Astrology.PredictionPool Offense
+	if ($Astrology.LearningRate < 30) then GOSUB Astrology.CheckPrediction Offense
+	var Astrology.PredictionPool Defense
+	if ($Astrology.LearningRate < 30) then GOSUB Astrology.CheckPrediction Defense
+	var Astrology.PredictionPool Survival
+	if ($Astrology.LearningRate < 30) then GOSUB Astrology.CheckPrediction Survival
+	return
+}	
+	
+Astrology.CheckPrediction:
+{
+	pause .1
+	matchre Astrology.CheckPrediction %Repeat|You are still stunned.
+	matchre Astrology.MakePrediction complete understanding
+	matchre Return Roundtime
+	if ($Astrology.Ranks < 50) then match Astrology.MakePrediction modest understanding
+	if ($Astrology.Ranks < 150) then match Astrology.MakePrediction decent understanding
+	if ($Astrology.Ranks < 250) then match Astrology.MakePrediction significant understanding
+	if ($Astrology.Ranks < 450) then match Astrology.MakePrediction potent understanding
+	if ($Astrology.Ranks < 750) then match Astrology.MakePrediction insightful understanding
+	if ($Astrology.Ranks < 950) then match Astrology.MakePrediction powerful understanding
+	send predict state %Astrology.PredictionPool
+	matchwait 1
+	return
+}
+	
+Astrology.MakePrediction:
+{
+	matchre Astrology.MakePrediction %Repeat
+	matchre Astrology.PredictAligned You focus internally
+	send align %Astrology.PredictionPool
+	matchwait 1
+	return
+}
+	
+Astrology.PredictAligned:
+{
+	matchre Astrology.PredictAligned %Repeat
+	matchre Return Roundtime|Roundtime:|As you reach out toward the future
+	send predict future
+	matchwait 1
+	return
+}
+
+
+Astrology.CannotSeeSky:
+{
+	var Astrology.Inside TRUE
+	return
+}
+
+Astrology.Tool.Vision:
+{
+	return
+}

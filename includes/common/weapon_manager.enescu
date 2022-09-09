@@ -1,0 +1,4 @@
+weapon_manager.Init:
+{
+	return
+}

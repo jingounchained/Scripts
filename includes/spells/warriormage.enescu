@@ -1,0 +1,103 @@
+spells.WarriorMage.Init:
+{
+	
+	action put #var Enescu.WarriorMage.SummonedWeapon $2 when ^You reach out with your will and reshape your ((?:\w+)(?:\s\w+)?) into a ((?:\w+)(?:\s\w+)?)\.$
+	return
+}
+
+Spells.Shockwave.PrepFLS:
+{
+	var castPrepPrior prep fls
+	GOSUB Cast.StartTrainingSpell "%PrepSpell" %PrepAmount "%castTarget" %ChargeCount %ChargeAmount "%castPrepPrior" "%castPrepPost" "%castCastPrior" "%castCastPost"
+	return
+}
+
+Summon.Weapon:
+{
+	matchre return ^Roundtime
+	matchre Summon.Weapon.AbortForCharge  ^You lack the elemental charge to summon a weapon\.$
+	do summon weapon
+	matchwait 2 
+	return
+}
+
+Summon.Weapon.AbortForCharge:
+{
+	put #echo >ScriptStatus Aborted!
+	put #echo >ScriptLog Not enough Elemental Charge to summon your weapon.
+	put #echo HEY NOOB! Get some charge!
+}
+
+Summon.SetSkill:
+{
+	var summonSkill $1
+	if ("$1" = "Small_Edged")  then var summonSkill small edged
+	if ("$1" = "Large_Edged")  then var summonSkill large edged
+	if ("$1" = "Twohanded_Edged")  then var summonSkill twohanded edged
+	if ("$1" = "Small_Blunt")  then var summonSkill small blunt
+	if ("$1" = "Large_Blunt")  then var summonSkill large blunt
+	if ("$1" = "Twohanded_Blunt")  then var summonSkill twohanded blunt
+	if ("$1" = "Light_Thrown")  then var summonSkill light thrown
+	if ("$1" = "Heavy_Thrown")  then var summonSkill heavy thrown
+	return
+}
+
+Summon.Weapon.Shape:
+{
+	matchre return ^Roundtime|^You lack the elemental charge to modify your weapon\.$
+	matchwait 2
+	do shape my $1 to $2
+	return 
+}
+
+Summon.Weapon.Wield:
+{
+	matchre Weapons.FreeHandsToWield (free hand|need to have your)
+	matchre Summon.Weapon.Find (out of reach|What were you|can't seem|Wield what?|You can only wield a weapon|Remove what?)
+	matchre Weapon.Sheath.Unload (^You should probably save your)
+	matchre Weapon.GetFromGround as it is lying at your feet!
+	matchre Return (^With a flick of your wrist|^You draw|^You take|already holding|free to|You sling|already holding|inventory|You remove|^You aren't wearing|You grab|You get|You deftly remove|^You yank your)
+	do wield my $Enescu.WarriorMage.SummonedWeapon 
+	matchwait 2
+	return
+}
+
+Summon.Weapon.NoFind:
+{
+	matchre Weapons.FreeHandsToWield (free hand|need to have your)
+	matchre return (out of reach|What were you|can't seem|Wield what?|You can only wield a weapon|Remove what?)
+	matchre Weapon.Sheath.Unload (^You should probably save your)
+	matchre Weapon.GetFromGround as it is lying at your feet!
+	matchre Return (^With a flick of your wrist|^You draw|^You take|already holding|free to|You sling|already holding|inventory|You remove|^You aren't wearing|You grab|You get|You deftly remove|^You yank your)
+	do wield my $Enescu.WarriorMage.SummonedWeapon
+	matchwait 2
+	return
+}
+
+Summon.Weapon.Find:
+{
+	var PipeDelimitedWeaponSkillList %MeleeSkills|%RangedSkills
+	var SummonWeaponPosition 0
+	Summon.Weapon.Find.Internal:
+	if (%SummonWeaponPosition <= count("%PipeDelimitedWeaponSkillList", "|") then
+	{
+		if ("$Enescu.Weapons.%PipeDelimitedWeaponSkillList(%SummonWeaponPosition).Swap.Command" = "Summon") then 
+		{
+			put #var Enescu.WarriorMage.SummonedWeapon $Enescu.Weapons.%PipeDelimitedWeaponSkillList(%SummonWeaponPosition).Noun
+			GOSUB Summon.Weapon.NoFind
+		}
+		if ("$righthandnoun" = "$Enescu.WarriorMage.SummonedWeapon") or ("$lefthandnoun" = "$Enescu.WarriorMage.SummonedWeapon") then
+		{
+			return
+		}
+		math SummonWeaponPosition add 1
+		goto Summon.Weapon.Find.Internal
+	}
+	else
+	{
+		GOSUB Summon.Weapon
+		return
+	}
+		
+}
+

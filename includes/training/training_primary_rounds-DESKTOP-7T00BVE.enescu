@@ -1,0 +1,78 @@
+Utility.Start:
+Augmentation.Start:
+Warding.Start:
+Sorcery.Start:
+Magic.Start:
+{
+	if !matchre("$guild", "Thief|Barbarian|Commoner") then 
+	{
+		var castPrepPrior 
+		var castPrepPost 
+		var castCastPrior 
+		var castCastPost 
+		if ("$Enescu.Magic.%CurrentPrimarySkill.Release" = "BEFORE") then var castCastPrior release $Enescu.Magic.%CurrentPrimarySkill.Spell
+		if ("$Enescu.Magic.%CurrentPrimarySkill.Release" = "AFTER") then var castCastPost release $Enescu.Magic.%CurrentPrimarySkill.Spell
+		if ($Enescu.Magic.%CurrentPrimarySkill.Symbiosis = 1) then 
+		{
+			var castPrepPrior prep symbiosis
+			if ("%castCastPost" != "") then var castCastPost %castCastPost;release symbiosis
+			else var castCastPost release symbiosis
+		}
+
+		GOSUB Cast.StartTrainingSpell "$Enescu.Magic.%CurrentPrimarySkill.Spell" $Enescu.Magic.%CurrentPrimarySkill.Amount "$Enescu.Magic.%CurrentPrimarySkill.Target" $Enescu.Magic.%CurrentPrimarySkill.Charge.Count $Enescu.Magic.%CurrentPrimarySkill.Charge.Amount "%castPrepPrior" "%castPrepPost" "%castCastPrior" "%castCastPost"
+		GOSUB Cast.Round
+		unvar castPrepPrior 
+		unvar castPrepPost 
+		unvar castCastPrior 
+		unvar castCastPost 
+	}
+	if ("$guild" = "Thief") then GOSUB khri $Enescu.Magic.%CurrentPrimarySkill.Spell
+
+	RETURN
+}
+
+Athletics.Start:
+{
+	if ($Enescu.Athletics.ClimbingRope.Enabled = 1) then
+	{
+		GOSUB StowHands
+		gosub Get "$Enescu.Athletics.ClimbingRope.Noun"
+	}
+	return
+}
+
+Utility.Round:
+Augmentation.Round:
+Warding.Round:
+Sorcery.Round:
+Magic.Round:
+{
+	if !matchre("$guild", "Thief|Barbarian|Commoner") then 
+	{
+		GOSUB skill_manager.GetNextSecondarySkill
+		GOSUB %CurrentSecondarySkill.Round
+		GOSUB Cast.Round
+		if ("$preparedspell" = "None") then var CurrentRoundFinished 1
+	}
+	else
+	{
+		var CurrentRoundFinished 1
+	}
+	return
+}
+
+Athletics.Round:
+{
+	if ($Enescu.Athletics.ClimbingRope.Enabled = 1) then
+	{
+		GOSUB Athletics.ClimbRope
+	}
+	return
+}
+
+Perception.Start:
+Perception.Round:
+{
+	GOSUB Outdoorsmanship.Start
+	return
+}

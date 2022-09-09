@@ -1,0 +1,11 @@
+include includes/skills/astrology.enescu
+include includes/skills/athletics.enescu
+include includes/skills/attunement.enescu
+include includes/skills/appraisal.enescu
+include includes/skills/bardiclore.enescu
+include includes/skills/firstaid.enescu
+include includes/skills/locksmithing.enescu
+include includes/skills/performance.enescu
+include includes/skills/outdoorsmanship.enescu
+include includes/skills/theurgy.enescu
+include includes/skills/empathy.enescu

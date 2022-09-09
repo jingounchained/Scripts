@@ -1,0 +1,101 @@
+GOSUB INIT
+GOTO start
+
+########################################
+##
+##		 Enescu Training Script
+##
+##	Please use the Enescu Dashboard to
+##	configure the variables to use this
+##	script. 
+##
+##	all items are stowed, please use
+##	the store verb to configure your 
+##	stowage containers
+##
+########################################
+
+
+
+##~~~~~~~~~~~~~
+##~~~~~~~~~~~~~ Includes
+##~~~~~~~~~~~~~
+include includes/training/training_includes.enescu
+
+##~~~~~~~~~~~~~
+##~~~~~~~~~~~~~
+##~~~~~~~~~~~~~
+
+
+start:
+{
+	gosub skill_manager.GetNextPrimarySkill
+	gosub startRounds
+	goto start
+}
+
+startRounds:
+{
+	if ($prone = 1) then GOSUB utility.Command "sit" "^You sit"
+	gosub Utility.TimedEvents
+	gosub primaryRound
+	
+	if contains("%CurrentPrimarySkill", "Astrology|Appraisal|Locksmithing|Bardic\_Lore)") and ($%CurrentPrimarySkill.LearningRate < %RateToTrainTo) then goto startRounds
+	return
+}
+
+
+primaryRound:
+{
+	send #clear ScriptStatus
+	send #echo >ScriptStatus Current Skill: %CurrentPrimarySkill
+	send #echo >ScriptStatus Max Learning Rate: %RateToTrainTo
+	if ($%CurrentPrimarySkill.LearningRate < %RateToTrainTo) then
+	{
+		var CurrentRoundFinished 0
+		GOSUB buff_manager.FullyCastNextBuff
+		GOSUB %CurrentPrimarySkill.Start
+		GOSUB primaryRound.Loop
+
+	}
+	return
+}
+
+primaryRound.Loop:
+{
+	GOSUB %CurrentPrimarySkill.Round
+	IF (%CurrentRoundFinished = 1) THEN
+	{
+		var CurrentRoundFinished 0
+		return
+	}
+	else
+	{
+		goto primaryRound.Loop
+	}
+	return
+}
+
+finish:
+{
+	send #echo >ScriptLog Script ran for %t
+	timer stop
+	
+	 #is not in need of cleaning
+}
+
+
+shiftsong:
+{
+	exit
+}
+
+TheEpicConclusion:
+{
+	send #echo >ScriptLog Maxed learning.
+	send #echo >ScriptStatus Idling
+	pause 2400
+	send #echo >ScriptLog Resumed training.
+	GOSUB INIT
+	goto start
+}

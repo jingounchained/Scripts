@@ -1,0 +1,364 @@
+utility.Init:
+{
+	var Repeat ^(\.\.\.wait|Sorry\, you may only type ahead|You are still stunned|You can\'t do that while|You don\'t seem to be able)
+	return
+}
+
+return:
+{
+	return
+}
+
+Utility.TimedEvents:
+{
+	GOSUB Tarantula
+	GOSUB HEEgg
+	GOSUB Wands
+	GOSUB Almanac
+	GOSUB HeroicTattoo
+	return
+}
+
+utility.Command:
+{
+	var utilityCommandSend $1
+	var utilityCommandResponse $2
+	utility.Command.Internal:
+	{
+		pause .2
+		matchre utility.Command.Internal %Repeat
+		matchre return %utilityCommandResponse
+		send %utilityCommandSend
+		matchwait 1
+	}
+	return
+}
+
+StowHands:
+{
+	if ("$lefthand" != "Empty") then GOSUB Stow left
+	if ("$righthand" != "Empty") then GOSUB Stow right
+	return
+}
+
+TIMER:
+{
+		### - This function was written courtesy of Dasffion
+	 var timer $1
+	 var wait $2
+	 var gosub $3
+	TIMER_1:
+	{
+		delay 0.0001
+		if (%%timer.Time > -1) then 
+		{
+			evalmath elapsedTime ($gametime - %%timer.Time)
+			if (%elapsedTime < %wait) then return
+			gosub %gosub
+			var %timer.Time $gametime
+		}
+		else
+		{
+			gosub %gosub
+			var %timer.Time $gametime
+		}
+		pause 0.1
+
+		return
+	 }
+}
+
+GLOBALTIMER:
+{
+		### - This function was written courtesy of Dasffion
+	 var timer $1
+	 var wait $2
+	 var gosub $3
+	GLOBALTIMER_1:
+	{
+		delay 0.0001
+		if ($%timer.Time > -1) then 
+		{
+			evalmath elapsedTime ($gametime - $%timer.Time)
+			if (%elapsedTime < %wait) then return
+			gosub %gosub
+			put #var %timer.Time $gametime
+		}
+		else
+		{
+			gosub %gosub
+			put #var %timer.Time $gametime
+		}
+		pause 0.1
+
+		return
+	 }
+}
+
+Utility.Timer:
+{
+	#parameters: $1 = Timer Name, $2 = Duration, $3 = SUBROUTINE to go to 
+	var utilityTimer $1
+	var TimerSkipped 0
+	if !def(%utilityTimer.Time) then put #var %utilityTimer.Time 0
+	evalmath elapsedTime ($gametime - $%utilityTimer.Time)
+	if (%elapsedTime > $2) then
+	{
+		GOSUB $3
+		put #var %utilityTimer.Time $gametime
+	}
+	else
+	{
+		var TimerSkipped 1
+	}
+	return
+}
+
+Wear:
+{
+	GOSUB utility.Command "wear my $1" "^(You attach|You slip|You slide|You hook)"
+	return 
+}
+
+Remove:
+{
+	GOSUB utility.Command "remove my $1" "^(You remove|You slip|You unhook|You slide)"
+	return
+}
+
+Get:
+{
+	GOSUB utility.Command "get my $1" "^(You get|You take)"
+	return
+}
+
+Stow:
+{
+	GOSUB utility.Command "stow $1" "^(You put|You gently set)"
+	return
+}
+
+Stand:
+{
+	GOSUB utility.Command "stand" "^(You are|You stand|Roundtime)"
+	if ($prone = 1) or ($sitting = 1) or ($kneeling = 1) then goto Stand
+	return
+}
+
+Sit:
+{
+	GOSUB utility.Command "sit" "^(You are|You sit|Roundtime)"
+	if ($sitting = 0) then goto Sit
+	return
+}
+
+###
+#	Special Item / Every Action 
+###
+
+HeroicTattoo:
+{
+	if ("$Enescu.HeroicTattoo.Enabled" = "1") then
+	{
+		GOSUB Utility.Timer Enescu.HeroicTattoo 3601 HeroicTattoo.Invoke
+	}
+	return
+}
+
+HeroicTattoo.Invoke:
+{
+	matchre HeroicTattoo.Invoke %Repeat
+	matchre return  its magic washes over you\.$|Its magic appears depleted\.$|^You brace yourself 
+	matchre HeroicTattoo.Disable ^You can\'t do that.$
+	send invoke tattoo
+	matchwait 3
+	put #echo >ScriptLog Fell out of HeroicTattoo.Invoke without matching
+	return
+}
+
+HeroicTattoo.Disable:
+{
+	put #var Enescu.HeroicTattoo.Enabled 0
+	return
+}
+
+Almanac:
+{
+	if ("$Enescu.Almanac.Enabled" = 1) then
+	{
+		GOSUB Utility.Timer Enescu.Almanac 601 Almanac.Use
+	}
+	return
+}
+
+Almanac.Use:
+{
+	GOSUB GET Almanac
+	GOSUB Almanac.Study
+	GOSUB STOW Almanac
+	return
+}
+
+Almanac.Study:
+{
+	matchre Almanac.Study %Repeat
+	matchre Almanac.Open ^You believe you would learn something significant about a random skill
+	matchre return You believe you\'ve learned something significant about (.*)\!$|^You\'ve gleaned all the insight you can from the violet almanac\, for now\.$
+	send study my almanac
+	matchwait 12
+	put #echo >ScriptLog Fell out of Almanac.Study without matching
+	return
+}
+
+Almanac.Open:
+{
+	GOSUB utility.DoCommand "open my almanac" "^You open"
+	goto Almanac.Study
+}
+
+Tarantula:
+{
+	if ("$Enescu.Tarantula.Enabled" = "1") then
+	{
+		if !def(Enescu.%scriptname.Tarantula.Skill) then return
+		var TarantulaSkill $Enescu.%scriptname.Tarantula.Skill(1)
+		if ("$Enescu.%scriptname.Tarantula.Skill(1)" = "$Enescu.Tarantula.LastSkill") then 
+		{
+			var TarantulaSkill $Enescu.%scriptname.Tarantula.Skill(2)
+		}
+		eval TarantulaSkillEXP replacere("%TarantulaSkill", "\ ", "_")
+		if ($%TarantulaSkillEXP.LearningRate < 17) then 
+		{
+			return
+		}
+		GOSUB Utility.Timer Enescu.Tarantula 601 Tarantula.Use
+	}
+	return
+}
+
+Tarantula.Use:
+{
+	
+	matchre Tarantula.Use %RepeatText
+	matchre Tarantula.SwapSkill ^\[You need to vary which skillset
+	# matchre The biomechanical tarantula will now consume %TarantulaSkill knowledge\.$
+	matchre Tarantula.Log ^(The tarantula comes alive in your|You try\, but)
+	send turn my tarantula to %TarantulaSkill;rub my tarantula
+	matchwait 2
+	return
+}
+
+Tarantula.Log:
+{
+	put #echo >ScriptLog Tarantula: %TarantulaSkill
+	return
+}
+
+Tarantula.SwapSkill:
+{
+	if ("%TarantulaSkill" = "Defending") then var TarantulaSkill Melee Mastery
+	else var TarantulaSkill Defending
+	goto Tarantula.Use
+}
+
+HEEgg:
+{
+	if ("$Enescu.HEEgg.Enabled" = "1") then
+	{
+		GOSUB Utility.Timer Enescu.HEEgg 601 HEEgg.Use
+	}
+	return
+}
+
+QuestOrb:
+{
+	GOSUB Utility.Timer Enescu.QuestOrb 3601 QuestOrb.Get
+	return
+}
+
+QuestOrb.Get:
+{
+	matchre QuestOrb.Get %RepeatText
+	matchre return ^A red-swirled orb
+	send quest claim;-.2stow orb
+	matchwait 2
+	return
+}
+
+HEEgg.Use:
+{
+	pause 0.1
+	GOSUB GET "glass egg"
+	GOSUB HEEgg.Invoke
+	GOSUB STOW "glass egg"
+	put #echo >ScriptLog HE Egg Invoked
+	return
+}
+
+HEEgg.Invoke:
+{
+	GOSUB utility.Command "invoke my egg" "^(You stare into the|The red light within)"
+	return
+}
+
+Wands:
+{
+	var WandPosition -1
+	GOSUB Wands.CheckAll
+	return
+}
+
+Wands.CheckAll:
+{
+	
+	math WandPosition add 1
+	if !def(Enescu.Wands.%WandPosition.Noun) then return
+	if ($Enescu.Wands.%WandPosition.Count < 1) then goto Wands.CheckAll
+	GOSUB Utility.Timer Enescu.Wands.%WandPosition $Enescu.Wands.%WandPosition.DurationSeconds Wands.Use
+	
+	goto Wands.CheckAll
+}
+
+Wands.Use:
+{
+	if ("$Enescu.Wands.%WandPosition.Count" = "2") then
+	{
+		GOSUB GET "second $Enescu.Wands.%WandPosition.Noun"
+	}
+	else if ("$Enescu.Wands.%WandPosition.Count" = "3") then
+	{
+		GOSUB GET "third $Enescu.Wands.%WandPosition.Noun"
+	}
+	else
+	{
+		GOSUB GET "$Enescu.Wands.%WandPosition.Noun"
+	}
+	
+	GOSUB Wands.Invoke
+	
+	GOSUB STOW "$Enescu.Wands.%WandPosition.Noun"
+	return
+}
+
+Wands.Invoke:
+{
+	pause 0.1
+	matchre Wands.Invoke %RepeatText
+	matchre Wands.Return ^You glance down
+	if def(Enescu.Wands.%WandPosition.Verb) then 
+	{
+		send $Enescu.Wands.%WandPosition.Verb my $Enescu.Wands.%WandPosition.Noun;glance
+	}
+	else
+	{
+		send rub my $Enescu.Wands.%WandPosition.Noun;glance
+	}
+	matchwait 2
+	return
+}
+
+Wands.Return:
+{
+	put #echo >ScriptLog Wand: $Enescu.Wands.%WandPosition.Noun
+	return
+}

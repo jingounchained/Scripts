@@ -1,0 +1,53 @@
+performance.init:
+{
+	var instrumentDirty 0
+	action var instrumentDirty 1 when affect your performance
+	
+	var performancePlaying 0
+	action var performancePlaying 0 when ^(You stop playing|You finish playing)
+	action var performancePlaying 1 when ^(You fumble slightly|You begin|You effortlessly|You struggle)
+	
+	var performance.playstring play $Enescu.Performance.Song $Enescu.Performance.Mood
+	if ("$guild" = "Cleric") then var performance.playstring %performance.playstring for triquetra
+	
+	return
+}
+
+Performance.Start:
+{
+	if (instrumentDirty = 1) then GOSUB performance.Maintenance
+	performance.start.internal:
+	{
+		matchre performance.start.internal %Repeat
+		matchre return ^(You fumble slightly|You begin|You effortlessly|You struggle)
+		send %performance.playstring
+		matchwait 1
+	}
+	return
+}
+
+performance.Maintenance:
+{
+	
+	GOSUB Get cloth
+	GOSUB Remove $Enescu.Performance.Instrument
+	GOSUB performance.Clean
+	GOSUB Wear $Enescu.Performance.Instrument
+	GOSUB Stow cloth
+	return
+}
+
+performance.Clean:
+{
+		matchre performance.Clean %Repeat
+		matchre return ^\[Roundtime|not in need
+		send clean my $Enescu.Performance.Instrument with my cloth
+		matchwait 2
+		return
+}
+
+performance.Stop:
+{
+	GOSUB utility.Command "stop play" "^(You stop playing your|In the name of)"
+	return
+}

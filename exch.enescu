@@ -1,0 +1,39 @@
+var Repeat ^(\.\.\.wait|Sorry\, you may only type ahead|You are still stunned)
+
+if contains("%1","dok") then GOTO DOK
+if contains("%1","kro") then GOTO KRO
+if contains("%1","lir") then GOTO LIR
+
+echo Please specify currency type to exchange to! (.exch kronar|lirum|dokora)
+
+exit
+
+
+DOK:
+GOSUB exchange kronar dokora
+GOSUB exchange lirum dokora
+exit
+
+LIR:
+GOSUB exchange dokora lirum
+GOSUB exchange kronar lirum
+exit
+
+KRO:
+GOSUB exchange dokora kronar
+GOSUB exchange lirum kronar
+exit
+
+
+exchange:
+var original $1
+var final $2
+exchange.internal:
+pause .1
+matchre exchange.internal %Repeat
+matchre return ^(You count out|You start|But you|You hand)
+send exch all %original for %final
+matchwait 3
+
+return:
+return

@@ -1,0 +1,228 @@
+
+var searchables rake|hay|fencepost|pail|burrow|wagon|Halfling statue|dragon statue|hut|straw|spiderweb|stack of wood|boulder|basket|stones|wheelbarrow
+var halflings carefree Halfling|cheerful Halfling|grumpy Halfling|tired Halfling|tall Gor\'Tog|playful Halfling
+var repeat ^\.\.\.wait|^Sorry, you may only type ahead
+var currentTask none
+var parsestepdone CORN MAZE STEP DONE
+var kernelsThisRun 0
+if !def(Enescu.kernels) then 
+{
+	put #tvar Enescu.kernels 0
+	var kernels 0
+}
+else
+{
+	var kernels $Enescu.kernels
+}
+put #tvar automapper.waitforparse %parsestepdone
+
+	action goto start when ^Obvious paths:
+	action put #echo >ScriptLog Task [%currentTask] Complete! when ASK HALFLING ABOUT TASK again.
+	action send stand when ^You can't do that while kneeling!|^You can't do that while lying down.
+	action put #echo >ScriptLog $1 Minute Timer when you've only got ([0-9]+) (minute|minutes) of time left. 
+	action put #echo >ScriptLog ~~ENTERING MAZE!~~ when ^A smiling Halfling checks her paperwork and nods.  \"Okay!  You\'re all set to go into the Sleeping Dragon Corn Maze!  It\'s a lot of fun!  
+	action put #echo >ScriptLog ~~ESCORTED OUT!~~ when "It looks like you got lost in the maze!  I'm here to escort you out."
+	action put #echo >ScriptLog ~~EXITING MAZE!~~ when on finding the exit
+	action put #beep;put #echo >ScriptLog Harawep's Spider has joined the game! when ^A hissing sound echoes through the Corn Maze as Harawep\'s Spider makes its appearance\!$
+	action put #beep;put #echo >ScriptLog Scarecrow has joined the game! when ^You hear sinister laughter as the Scarecrow invades the Corn Maze\!$
+	action put #beep;put #echo >ScriptLog Scarecrow has joined the game! when ^You hear sinister laughter as the Scarecrow freely roams the ripened field of the Corn Maze\!$
+	
+	action var currentTask POKE when ^For this task you\'ll just need to find|^For this task you\'ll just need to go up to|^For this task you\'ll need to find
+	action var currentTask TOUCH when ^For this task you\'ll need to go around finding landmarks in the maze and TOUCH ten different ones.
+	action var currentTask SCREAM when ^For this task you\'ll need to move to different rooms in the maze and SCREAM.
+	action var currentTask SEARCH when ^For this task you\'ll need to SEARCH|^For this task you should move around and SEARCH
+	action var currentTask FORAGE when ^For this task you\'ll need to FORAGE CORN inside the maze.  
+	action var currentTask SCARECROW when ^For this task you\'ll need to BUILD SCARECROW
+	action var currentTask WEEDS when ^For this task you\'ll need to walk around the maze and PULL WEED in different rooms.
+	action var currentTask DISARM when ^For this task you\'ll need to first SEARCH out a trap
+	action var currentTask MICE when ^For this task you\'ll need to WAVE
+	action var currentTask none;var currentProgress -1;var currentCap 0 when ^You are not currently on a task.
+	action var currentTask none;put #echo >ScriptLog Task turned in: $1 kernels!;var currentProgress -1;var currentCap 0;math kernels add $1;math kernelsThisRun add $1 when ([0-9]+) silver kernels into your bottle and says,
+	action math kernels add 20;math kernelsThisRun add 20;put #echo >ScriptLog [BOSS] killed: 20 kernels! when ^You quickly scoop twenty of them, stashing them in your bottle.
+	action put #beep;put #echo >ScriptLog PASS FOUND! when You manage to find a corn maze pass!
+	action send task when "You're already doing something, though."
+	action if !matchre("$1", "shiny golden token|some ripe corn") then put #echo >ScriptLog Looted: $1 when ^You manage to find (.*)!
+
+
+action var currentProgress $1;var currentCap $2;put #statusbar 1 Maze Task: [%currentTask] %currentProgress of %currentCap when You\'ve completed ([0-9]+) of the ([0-9]+) things you were asked to do\.
+
+action math currentProgress add 1;put #statusbar 1 Maze Task: [%currentTask] %currentProgress of %currentCap when ^(You manage to find a shiny golden token!|You diligently grab at the grassy weeds between the stalks of corn, clearing some out.|You pull out some of the weeds in the area without harming the corn.|You pull on some of the weeds and manage to get a whole bunch of them cleared away from the corn.|You manage to find some ripe corn!  You quickly stuff it into the bag the Halfling gave you along with the bottle.|You guess this still counts as 'disarming the trap'.|You think that definitely counted toward your 'task'.|You\'re pretty sure that counted toward the total number.|Getting down on your hands and knees, you manage to really get in and clear out the weeds.|You put the finishing touches on your scarecrow.|You wave your hands around wildly at the mice in the area and you see several of them scatter away from the corn in a panic!|You manage to nudge|You manage to cut the webbing|You manage to dismantle|The sound carries through the maze, and you are confident it counted toward your task.)
+action math currentProgress add 1;put #statusbar 1 Maze Task: [%currentTask] %currentProgress of %currentCap when You chase after it and manage to scoop it up in your hands, then stash it away in the little bag the Halfling gave you.
+init:
+{
+	gosub CheckTask
+	goto start
+}
+
+CheckTask:
+{
+	send task
+	pause .2
+	return
+}
+
+none:
+return
+
+start:
+{
+	if matchre("$roomobjs", "a wide trail that leads around to the end of the corn maze|a wide trail covered in") then GOSUB EnterMaze
+	if !matchre("%currentTask", "SEARCH|DISARM") and matchre("$roomobjs", "(%searchables)") then GOSUB Search $1
+	if matchre("$roomobjs", "(%halflings)") then GOSUB CheckHalflings $1
+	if (%currentProgress < %currentCap ) then GOSUB PerformTask
+	GOSUB UpdateStatus
+	pause 0.2
+	send #parse %parsestepdone
+	pause 10
+	goto start
+}
+
+UpdateStatus:
+{
+	send #tvar Enescu.kernels %kernels
+	send #clear ScriptStatus
+	send #echo >ScriptStatus Maze Task: [%currentTask] %currentProgress of %currentCap
+	send #echo >ScriptStatus Kernels This Session: $Enescu.kernels
+	send #echo >ScriptStatus Kernels This Run: %kernelsThisRun
+	return
+}
+
+
+EnterMaze:
+{
+	send redeem pass;redeem pass
+	pause 0.1
+	send ask halfling about access;task;e
+	return
+}
+
+Return:
+{
+	return
+}
+
+PerformTask:
+{
+	GOSUB %currentTask
+	pause 0.1
+	return
+}
+
+TOUCH:
+{
+	if matchre("$roomobjs","(%searchables)") then send touch $1
+	return
+}
+
+POKE:
+{
+	if matchre("$roomobjs","(%halflings)") then 
+	send poke $1
+	return
+}
+
+SCREAM:
+{
+	if (matchre("$roomobjs", "tunnel")  then send scream
+	return
+}
+
+
+SEARCH:
+{
+	if ("%currentTask" = "SEARCH") and ("%currentProgress" = "%currentCap") then return
+	var target $0
+	Search.Inner:
+	matchre Search.Inner %repeat
+	if !("%currentTask" = "SEARCH") then
+	{
+		send search %target;stow left
+	}
+	else
+	{
+		send search
+	}
+	return
+}
+
+FORAGE:
+{
+	if ("%currentProgress" != "%currentCap") then send forage corn
+	return
+}
+
+SCARECROW:
+{
+	pause 0.2
+	matchre Scarecrow %repeat|^Roundtime:|^roundtime:
+	matchre return ^You've already|^You put the finishing
+	send build
+	matchwait 10
+	return
+}
+
+WEEDS:
+{
+	send pull weed
+	return
+}
+
+DISARM:
+{
+	GOSUB Disarm.SearchTrap
+	return
+}
+
+Disarm.SearchTrap:
+{
+	matchre Return ^(You don't think there are any traps here.|You've already looked for traps around here.)
+	matchre Disarm.Disarm ^Roundtime:
+	send search
+	matchwait 
+}
+
+Disarm.Disarm:
+{
+	matchre Disarm.Disarm %repeat
+	matchre Return ^You attempt to disarm the trap.
+	send disarm trap
+	matchwait 
+}
+
+MICE:
+{
+	send wave
+	return
+}
+
+
+CheckHalflings:
+{
+	var target $0
+	CheckHalflings.Inner:
+	matchre CheckHalflings.Inner %repeat
+	if ("%currentProgress" = "%currentCap") then 
+	{
+		gosub CompleteTask
+	}
+	if ("%currentTask" = "none") then 
+	{
+		gosub GetTask
+	}
+	return
+}
+
+CompleteTask:
+{
+	pause 0.2
+	send ask %target about task;ask %target for task;task
+	GOSUB UpdateStatus
+	return
+}
+
+GetTask:
+{
+	matchre GetTask %repeat
+	send ask %target for task;task
+	matchwait 
+}

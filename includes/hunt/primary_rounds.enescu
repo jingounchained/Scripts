@@ -1,0 +1,77 @@
+Athletics.Start:
+{
+	if ($Enescu.Athletics.ClimbingRope.Enabled = 1) then
+	{
+		GOSUB StowHands
+		gosub Get "$Enescu.Athletics.ClimbingRope.Noun"
+	}
+	return
+}
+
+Stealth.Round:
+{
+	GOSUB utility.Command "hide" "^Roundtime"
+	return
+}
+
+Brawling.Round:
+{
+	GOSUB utility.Command "slap" "^Roundtime"
+	return
+}
+
+Perception.Start:
+Perception.Round:
+{
+	GOSUB Outdoorsmanship.Start
+	return
+}
+
+Small_Edged.Start:
+Large_Edged.Start:
+Twohanded_Edged.Start:
+Small_Blunt.Start:
+Large_Blunt.Start:
+Twohanded_Blunt.Start:
+Staves.Start:
+Polearms.Start:
+Melee.Start:
+{
+	var CurrentRange Melee
+	return
+}
+
+Slings.Start:
+Bow.Start:
+Crossbow.Start:
+Ranged.Start:
+{
+	var CurrentRange Ranged
+	return
+}
+
+
+Small_Edged.Round:
+Large_Edged.Round:
+Twohanded_Edged.Round:
+Small_Blunt.Round:
+Large_Blunt.Round:
+Twohanded_Blunt.Round:
+Staves.Round:
+Polearms.Round:
+Melee.Round:
+{
+	GOSUB skill_manager.GetNextSecondarySkill
+	GOSUB %CurrentSecondarySkill.Round
+	return
+}
+
+Slings.Round:
+Bow.Round:
+Crossbow.Round:
+Ranged.Round:
+{
+	GOSUB skill_manager.GetNextSecondarySkill
+	GOSUB %CurrentSecondarySkill.Round
+	return
+}

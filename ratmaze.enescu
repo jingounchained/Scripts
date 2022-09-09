@@ -1,0 +1,90 @@
+action send $1 when ^A small rat scurries (.*)\!$
+action math bstotal add $1 when ^You search around and find (.*) bloodscrip!$
+action put #echo >ScriptLog $1 when ^You search around and find (.*)!$
+action var runTime 0;goto start when ^The labyrinth guard accepts your
+action send stand when ^(You need to stand up to enter the labyrinth\.|You can\'t do that while lying down\.)$
+action put #echo >ScriptLog Ratacombs: 5 Minute Warning when ^You only have about 5 minutes left in the labyrinth\!$
+var bstotal 0
+var totalTime 0
+var runTime 0
+var ticketsUsed 0
+var Repeat ^(\.\.\.wait|Sorry\, you may only type ahead|You are still stunned|You can\'t do that while|You don\'t seem to be able)
+
+start:
+if ("$roomname" = "Duskruin, Darkened Antechamber") then
+{
+	pause .5
+	GOSUB SpeakFriendAndEnter
+	if ("$roomname" = "Duskruin, Darkened Antechamber") then
+	{
+		put #beep
+		put #flash
+		put #echo >ScriptLog Something has gone wrong attempting to enter the ratacombs!
+		goto start
+	}
+	math ticketsUsed add 1
+}
+math time set 15
+wait:
+math runTime add 1
+math totalTime add 1
+matchre start ^A small rat scurries (north|south|west|east|northeast|northwest|southwest|southeast)\!$
+matchre rat_found ^You notice a small rat scurrying around the area\.$
+matchwait 1
+math time subtract 1
+if %time = 0 then goto start
+if %time <= 3 then put #echo %time seconds...
+evalmath minutes floor(%runTime / 60)
+evalmath seconds %runTime % 60
+evalmath totalminutes floor(%totalTime / 60)
+evalmath totalseconds %totalTime % 60
+if (%seconds = 50) and matchre("%minutes","5|11|17|23|29|35|41|47|53|59") then 
+{
+	GOSUB DoSearch
+}
+put #clear ScriptStatus
+put #echo >ScriptStatus Ratacomb Hunting for %totalminutes:%totalseconds
+put #echo >ScriptStatus Current Run Time: %minutes:%seconds
+put #echo >ScriptStatus Slips Used: %ticketsUsed
+put #echo >ScriptStatus Bloodscrip Found: %bstotal
+goto wait
+
+DoSearch:
+{
+	matchre DoSearch %Repeat
+	matchre CountRT ^Roundtime: (5) sec\.
+	send search 
+	matchwait 5
+	send stow left;stow right
+	return
+}
+
+SpeakFriendAndEnter:
+{
+	send get my slip;go port
+	return
+}
+
+rat_found:
+put #echo >ScriptLog RAT ATTEMPTED!
+matchre start ^You search around the area and find a small rat\, but it scurries off before you can catch it\!$
+matchre claimed You pick them both up\, claiming your new pet\.$
+put search
+matchwait 2
+goto start
+
+claimed:
+echo
+echo Yay! You found a rat! Now get some bloodscrip!
+put #echo >ScriptLog RAT FOUND!
+put #beep
+put #flash
+echo
+
+CountRT:
+{
+	math runTime add $1
+	math totalTime add $1
+	send stow left;stow right
+	return
+}

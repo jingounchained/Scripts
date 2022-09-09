@@ -1,0 +1,28 @@
+Spells.Empath.Init:
+{
+	#var Spells.Custom.Check %Spells.Custom.Check
+	#var Spells.Custom.Prep %Spells.Custom.Check
+	var Spells.Custom.Cast %Spells.Custom.Cast|IZTouch
+	return
+}
+
+Spells.IZTouch.Prep:
+{
+	GOSUB Utility.Timer Enescu.IZTouch 61 Spells.IZTouch
+	return
+}
+
+Spells.IZTouch:
+{
+	matchre Spells.IZTouch %RepeatText
+	matchre Spells.IZ.Log ^(Roundtime|You may TOUCH a player)
+	send touch
+	matchwait 2
+	return
+}
+
+Spells.IZ.Log:
+{
+	put #echo >ScriptLog IZ: $Empathy.LearningRate
+	return
+}

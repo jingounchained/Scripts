@@ -1,0 +1,405 @@
+###############
+#	CAST
+###############
+
+Cast.Init:
+{
+	if matchre("$guild", "Commoner|Thief|Barbarian") then return
+	var CastText ^You gesture.|^You don't have|imaginary toast|^You whisper|you allow the rhythms to fade|^Using your left hand|^You steeple your fingers together
+	var Cast.Ready 0
+	var preparing 0
+	var Cambrinth.Amount 0
+	var Cambrinth.Linked 0
+	var Cambrinth.Charge.Total 0
+	action var Cast.Ready 1 when ^(Your formation of a targeting pattern|Your target pattern has finished|You feel fully prepared)
+	action var Cast.Ready 0;send target when ^(Your concentration lapses and you lose your targeting|Your target pattern dissipates)
+	action var preparing 0 when ^Your concentration slips
+	action var Cambrinth.Amount 0;var Cambrinth.Linked 0 when ^Your (.*) (emits|emit) a loud \*snap\*
+	action var Cambrinth.Amount $1 when You clearly perceive (.*) lines worth of spell energy bound within the (.*)\.$
+	GOSUB utility.Command "focus my $Enescu.Magic.Cambrinth.Noun" "^You focus"
+	GOSUB Spells.Init
+	return
+}
+ 
+
+
+##################################
+##################################
+# USAGE:
+#
+#	INCLUDE this script 
+# 		ex: include Cast.cmd
+# 	Call Cast
+#		ex:	GOSUB Cast
+#
+#
+#	PARAMETERS: 
+#			REQUIRED
+#	Spell 			- abbrv of the spell, ie TKT, DMRS, SEER, etc
+#	Amount 			- amount to prepare spell at
+#	Target  		- CAST target (ie cast katamba, cast Djordje)
+#			OPTIONAL
+#	Count			- number of times to charge cambrinth
+#	Amount			- amount to charge cambrinth each time
+#	ChainPrepPrior	- command to chain before preparing, ie "prep symbiosis"
+#	ChainPrepPost	- command to chain after preparing, ie "target creatures"
+#	ChainCastPrior	- command to chain before the cast, ie "release.shadowling"
+#	ChainCastPost	- command to chain after cast, ie "invoke.shadowling" or "break.moonblade"
+#	
+#	for chaining commands remember that DR treats periods as spaces, or you can pass
+#	or you can enclose the command in quotes
+#
+#	!!OPTION PARAMETERS!!
+#	Option Parameters are only optional when they're the next parameter
+#	So if you want to use Cambrinth	
+#
+#	example usage:
+# 		GOSUB Cast TKS 15 "" %tks.charges %tks.amount "" "target creatures"
+#		GOSUB Cast Moonblade 15 Katamba
+#		GOSUB Cast MB 10 Warden 2 10
+#		GOSUB Cast DO 10 "" 2 10 "" "target warden chest"
+#		GOSUB Cast Moonblade 15 Katamba 0 0 "" "" "" "break moonblade"
+#		GOSUB Cast AUS 20 "" 4 20 "prep symbiosis"
+#		GOSUB Cast Shadowling 20 "" 3 20 "" "" "release shadowling" "invoke shadowling"
+#
+#
+##################################
+##################################
+Cast: 
+{
+	var Cast.Spell $1
+	var Cast.Amount $2
+	var Cast.Target $3
+	var Cambrinth.Charge.Count $4
+	var Cambrinth.Charge.Amount $5
+	evalmath Cambrinth.Charge.Total %Cambrinth.Charge.Count * %Cambrinth.Charge.Amount
+	var Cast.ChainPrepPrior $6
+	var Cast.ChainPrepPost $7
+	var Cast.ChainCastPrior $8
+	var Cast.ChainCastPost $9
+	
+	Cast.Start.Inner:
+	pause .5
+	matchre Cast.StopPlaying You should stop playing before you do that.
+
+	GOSUB Cast.Prepare
+	matchre Cast.Execute You already have a fully prepared
+	if (%Cambrinth.Charge.Count > 0) AND (%Cambrinth.Charge.Amount > 0) then 
+	{
+		GOSUB Cambrinth.Use
+	}
+	if (%Cast.Ready = 1) then
+	{
+		GOTO Cast.Execute
+	}
+	else
+	{
+		matchre Cast.Execute You feel fully prepared|^Your target pattern has finished forming around the area.|^Your formation of a targeting pattern
+		evalmath temp 25 - $spelltime
+		matchwait %temp
+		GOTO Cast.Execute
+	}
+}
+
+Cast.Round:
+{	
+	if ("%Cast.Ready" = "1") then GOSUB Cast.Execute
+	if ("$preparedspell" != "None") then GOSUB Cambrinth.Charge
+	return
+}
+
+Cast.CombatRound:
+{
+	if ("%Cast.Ready" = "1") then GOSUB Cast.Execute
+	if ("$preparedspell" != "None") then GOSUB Cambrinth.ChargeOnce
+	return
+}
+
+Cast.StartBuff:
+Cast.StartAttackSpell:
+Cast.StartTrainingSpell:
+{
+	var Cast.Spell $1
+	var Cast.Amount $2
+	var Cast.Target $3
+	var Cambrinth.Charge.Count $4
+	var Cambrinth.Charge.Amount $5
+	evalmath Cambrinth.Charge.Total %Cambrinth.Charge.Count * %Cambrinth.Charge.Amount
+	var Cast.ChainPrepPrior $6
+	var Cast.ChainPrepPost $7
+	var Cast.ChainCastPrior $8
+	var Cast.ChainCastPost $9
+	Cast.StartTrainingSpell.Inner:
+	pause .2
+	GOSUB Cast.Prepare
+	return
+}
+
+
+
+Cast.Return:
+{
+	return
+}
+
+Cast.StopPlaying:
+{
+	GOSUB Performance.Stop
+}
+
+Cast.Prepare:
+{
+	gosub Cast.BuildPrepString
+	Cast.Prepare.Inner:
+	pause 0.2
+	matchre Cast.Prepare.Inner %Repeat
+	matchre Cast.Prepare.Success $Enescu.Magic.PrepText|already preparing
+	matchre Cast.Execute already fully prepared
+	matchre Cast.AbortToFocus ^You fail to spread the mana evenly 
+	matchre Cast.UnhideAndTryAgain ^You cannot use the tattoo while maintaining the effort to stay hidden\.
+	send %Cast.PrepString
+	matchwait 3
+	return
+}
+
+Cast.UnhideAndTryAgain:
+{
+	matchre Cast.UnhideAndTryAgain %RepeatText
+	matchre Cast.Prepare.Inner ^You come|^But you
+	send unhide
+	matchwait
+}
+
+Cast.AbortToFocus:
+{
+	GOSUB utility.Command "focus my tattoo" "^Roundtime"
+	goto Cast.Prepare.Success
+}
+
+Cast.Prepare.Success:
+{
+	pause 0.2
+	var preparing 1
+	return 
+}
+
+Cast.RecoverMana: 
+{
+	GOSUB Cast.Release
+	GOSUB Cast.WaitForHarness
+	RETURN
+}
+
+Cast.WaitForHarness:
+{
+	var preparing 0
+	return
+}
+
+Cast.Idle:
+{
+	pause 5
+	if ($mana < 100) then goto Cast.Idle
+	return
+}
+
+Cast.Release:
+{
+	pause 0.2
+	matchre Cast.Release %Repeat
+	matchre Cast.Return ^You aren't|^You let
+	send release spell
+	matchwait
+}
+
+
+Cast.Execute:
+{
+	gosub Cast.BuildCastString
+	var Cast.Ready FALSE
+	var preparing 0
+	Cast.Execute.Inner:
+	pause 0.2
+	matchre Cast.Finished %CastText|^You glance
+	matchre Cast.Backfired backfire|backfires
+	matchre Cast.Execute.Inner %Repeat
+	send %Cast.CastString;glance
+	matchwait 3
+	goto Cast.Finished
+}
+
+Cast.Backfired:
+{
+	put #echo >ScriptLog Backfired %Cast.Spell at %Cast.Amount with %Cambrinth.Charge.Total in Camb
+	pause 0.1
+	send release symb
+	goto Cast.Finished
+}
+
+Cast.InvokeFocus:
+{	
+	var Cast.Focus $1
+	var Cast.Focus.Worn $2
+	
+	GOSUB StowHands
+	
+	if (%Cast.Focus.Worn = 1) then GOSUB Remove "%Cast.Focus"
+	else GOSUB Get %Cast.Focus
+	
+	GOSUB utility.Command "invoke my %Cast.Focus" "^Roundtime"
+	
+	if (%Cast.Focus.Worn = 1) then GOSUB Wear "%Cast.Focus"
+	else GOSUB Stow %Cast.Focus
+	
+	return 
+}
+
+
+
+Cast.BuildPrepString:
+{
+	if ("%Cast.Spell" = "TATTOO") then var Cast.PrepString invoke tattoo
+	else var Cast.PrepString prep %Cast.Spell %Cast.Amount	
+	if ("%Cast.ChainPrepPrior" != "") then var Cast.PrepString %Cast.ChainPrepPrior;#send -0.5%Cast.PrepString
+	if ("%Cast.ChainPrepPost" != "") then var Cast.PrepString %Cast.PrepString;#send -0.5%Cast.ChainPrepPost
+	return
+}
+
+Cast.BuildCastString:
+{
+	var Cast.CastString cast
+	if ("%Cast.Target" != "NONE") then var Cast.CastString %Cast.CastString %Cast.Target
+	if ("%Cast.ChainCastPrior" != "") then var Cast.CastString %Cast.ChainCastPrior;#send %Cast.CastString
+	if ("%Cast.ChainCastPost" != "") then var Cast.CastString %Cast.CastString;#send %Cast.ChainCastPost
+	return
+}
+
+Cast.Finished:
+{
+	if ("%HoldingCambrinth" = "1") then
+	{
+		pause 1
+		if ("$Enescu.Magic.Cambrinth.Worn" = "1") then
+		{
+			send wear my $Enescu.Magic.Cambrinth.Noun
+		}
+		else
+		{
+			send stow my $Enescu.Magic.Cambrinth.Noun
+		}
+		unvar HoldingCambrinth
+	}
+	
+	return
+}
+
+Cambrinth.Use:
+{
+	if ($Enescu.Magic.Cambrinth.Worn = 1) then
+	{
+		if ($Enescu.Magic.Cambrinth.Held = 1) then
+		{
+			GOSUB RemoveCambrinth
+		}
+	}
+	else
+	{
+		GOSUB GetCambrinth
+	}
+
+	GOSUB Cambrinth.Charge
+	GOSUB Cambrinth.Invoke
+	return
+}
+
+Cambrinth.Charge:
+{
+	if (%Cambrinth.Charge.Total = 0) then return
+	if (%Cambrinth.Linked = 1) then return
+	if (%Cambrinth.Charge.Count < 1) or (%Cambrinth.Amount >= %Cambrinth.Charge.Total) then GOTO Cambrinth.Invoke
+	evalmath Cambrinth.Charge.Potential %Cambrinth.Amount + %Cambrinth.Charge.Amount
+	if (%Cambrinth.Charge.Potential > %Cambrinth.Charge.Total) then
+	{
+		evalmath Cambrinth.Charge.Next.Amount %Cambrinth.Charge.Total - %Cambrinth.Amount
+	}
+	else
+	{
+		var Cambrinth.Charge.Next.Amount %Cambrinth.Charge.Amount
+	}
+
+	Cambrinth.Charge.Internal:
+	matchre Cambrinth.Charge.Internal %Repeat
+	matchre Cambrinth.Remove it too clumsy to charge the cambrinth tailband while wearing 
+	matchre Cambrinth.Get ^You\'ll have to hold it
+	matchre Cast.RecoverMana You feel intense strain|You strain
+	matchre Cambrinth.CountCharge ^Roundtime
+	send charge my $Enescu.Magic.Cambrinth.Noun %Cambrinth.Charge.Next.Amount
+	matchwait 3
+	goto Cambrinth.Charge
+	
+	Cambrinth.Remove:
+	{
+		GOSUB StowHands
+		GOSUB Remove $Enescu.Magic.Cambrinth.Noun
+		goto Cambrinth.Charge.Internal
+	}
+	
+	Cambrinth.Get:
+	{
+		GOSUB StowHands
+		GOSUB Get $Enescu.Magic.Cambrinth.Noun
+		goto Cambrinth.Charge.Internal
+	}
+}
+
+Cambrinth.CountCharge:
+{
+	math Cambrinth.Charge.Count subtract 1
+	math Cambrinth.Amount add %Cambrinth.Charge.Amount
+	if (%Cambrinth.Charge.Count = 0) then GOSUB Cambrinth.Invoke
+	goto Cambrinth.Charge
+}
+
+ReleaseSymbiosis:
+{
+	matchre ReleaseSymbiosis %Repeat
+	matchre ^(But you haven't|You release the)
+	send release symbiosis
+	matchwait 2
+	return
+}
+
+RemoveCambrinth:
+{
+	var HoldingCambrinth 1
+	matchre RemoveCambrinth %Repeat
+	matchre Cast.Return ^You remove|^You aren't|You take off
+	send remove my $Enescu.Magic.Cambrinth.Noun
+	matchwait 2
+	return
+}
+
+GetCambrinth:
+{
+	var HoldingCambrinth 1
+	matchre RemoveCambrinth %Repeat
+	matchre Cast.Return ^You get
+	send get my $Enescu.Magic.Cambrinth.Noun
+	matchwait 2
+	return
+}
+
+Cambrinth.Invoke:
+{
+	matchre Cambrinth.Invoke %Repeat
+	matchre Cambrinth.Invoke.Success forge a magical link to
+	send invoke my $Enescu.Magic.Cambrinth.Noun %Cambrinth.Charge.Total spell
+	matchwait 2
+	return
+}
+
+Cambrinth.Invoke.Success:
+{
+	var Cambrinth.Linked 1
+	return
+}

@@ -1,0 +1,664 @@
+constellation:
+pause 2
+match Coyote constellation of the Coyote
+match Heart constellation of the Heart
+match Sun Elanthian sun
+match Xibar blue moon Xibar
+match Yavash red moon Yavash
+match Katamba black moon Katamba
+match Wolf constellation of the Wolf
+match Lion constellation of the Lion
+match Raven constellation of the Raven
+match Unicorn constellation of the Unicorn
+match Boar constellation of the Boar
+match Panther constellation of the Panther
+match Cobra constellation of the Cobra
+match Ox constellation of the Ox
+match Scorpion constellation of the Scorpion
+match Wren constellation of the Wren
+match Cat constellation of the Cat
+match Ram constellation of the Ram
+match Dolphin constellation of the Dolphin
+match Shardstar the Shardstar
+match Nightingale constellation of the Nightingale
+match Wolverine constellation of the Wolverine
+match Centaur constellation of the Centaur
+match Magpie constellation of the Magpie
+match Weasel constellation of the Weasel
+match Kingsnake constellation of the King Snake
+match Viper constellation of the Viper
+match Albatross constellation of the Albatross
+match Shark constellation of the Shark
+match Donkey constellation of the Donkey
+match Dove constellation of the Dove
+match Phoenix constellation of the Phoenix
+match Heron constellation of the Heron
+match Mongoose constellation of the Mongoose
+match Goshawk constellation of the Goshawk
+match Owl constellation of the Owl
+match Welkin constellation of the Welkin
+match Raccoon constellation of the Raccoon
+match Cow constellation of the Cow
+match Adder constellation of the Adder
+match Vulture constellation of the Vulture
+match Shrew constellation of the Shrew
+match Shrike constellation of the Shrike
+match Jackal constellation of the Jackal
+match Spider constellation of the Spider
+match Giant constellation of the Giant
+match Hare constellation of the Hare
+match Verena the planet Verena
+match Toad constellation of the Toad
+match Archer constellation of Lirisa the Archer
+match Estrilda the planet Estrilda
+match Brigantine constellation of the Brigantine
+match Scales constellation of the Scales
+match Durgaulda the planet Durgaulda
+match Triquetra drawn towards the constellation of the Triquetra
+match Yoakena the planet Yoakena
+match Penhetia the planet Penhetia
+match Szeldia the planet Szeldia
+match Merewalda the planet Merewalda
+match Ismenia the planet Ismenia
+match Morleena the planet Morleena
+match Amlothi the planet Amlothi
+match Dawgolesh the planet Dawgolesh
+match Er'qutra the planet Er'qutra
+match KForge Kertigen's Forge
+match DEye Dergati's Eye
+matchwait
+
+Heart:
+pause
+put center my tele on Heart
+wait
+put peer my tele
+match constellation Roundtime
+match Heart ...wait
+matchwait
+
+
+Sun:
+pause
+put center my tele on Sun
+wait
+put peer my tele
+match constellation Roundtime
+match Sun ...wait
+matchwait
+
+Xibar:
+pause
+put center my tele on Xibar
+wait
+put peer my tele
+match constellation Roundtime
+match Xibar ...wait
+matchwait
+
+Yavash:
+pause
+put center my tele on Yavash
+wait
+put peer my tele
+match constellation Roundtime
+match Yavash ...wait
+matchwait
+
+Katamba:
+pause
+put center my tele on Katamba
+wait
+put peer my tele
+match constellation Roundtime
+match Katamba ...wait
+matchwait
+
+Wolf:
+pause
+put center my tele on Wolf 
+wait
+put peer my tele
+match constellation Roundtime
+match Wolf ...wait
+matchwait
+
+Lion:
+pause
+put center my tele on Lion 
+wait
+put peer my tele
+match constellation Roundtime
+match Lion ...wait
+matchwait
+
+Raven:
+pause
+put center my tele on Raven 
+wait
+put peer my tele
+match constellation Roundtime
+match Raven ...wait
+matchwait
+
+Unicorn:
+pause
+put center my tele on Unicorn 
+wait
+put peer my tele
+match constellation Roundtime
+match Unicorn ...wait
+matchwait
+
+Boar:
+pause
+put center my tele on Boar 
+wait
+put peer my tele
+match constellation Roundtime
+match Boar ...wait
+matchwait
+
+Panther:
+pause 
+put center my tele on Panther 
+wait
+put peer my tele
+match constellation Roundtime
+match Panther ...wait
+matchwait
+
+Cobra:
+pause
+put center my tele on Cobra 
+wait
+put peer my tele
+match constellation Roundtime
+match Cobra ...wait
+matchwait
+
+Ox:
+pause
+put center my tele on Ox 
+wait
+put peer my tele
+match constellation Roundtime
+match Ox ...wait
+matchwait
+
+Scorpion:
+pause
+put center my tele on Scorpion 
+wait
+put peer my tele
+match constellation Roundtime
+match Scorpion ...wait
+matchwait
+
+Wren:
+pause
+put center my tele on Wren 
+wait
+put peer my tele
+match constellation Roundtime
+match Wren ...wait
+matchwait
+
+Cat:
+pause
+put center my tele on Cat 
+wait
+put peer my tele
+match constellation Roundtime
+match Cat ...wait
+matchwait
+
+Ram:
+pause
+put center my tele on Ram 
+wait
+put peer my tele
+match constellation Roundtime
+match Ram ...wait
+matchwait
+
+Dolphin:
+pause 
+put center my tele on Dolphin 
+wait
+put peer my tele
+match constellation Roundtime
+match Dolphin ...wait
+matchwait
+
+Shardstar:
+pause
+put center my tele on Shardstar 
+wait
+put peer my tele
+match constellation Roundtime
+match Shardstar ...wait
+matchwait
+
+Nightingale:
+pause
+put center my tele on Nightingale
+wait
+put peer my tele
+match constellation Roundtime
+match Nightingale ...wait
+matchwait
+
+Wolverine:
+pause
+put center my tele on Wolverine 
+wait
+put peer my tele
+match constellation Roundtime
+match Wolverine ...wait
+matchwait
+
+Centaur:
+pause 
+put center my tele on Centaur 
+wait
+put peer my tele
+match constellation Roundtime
+match Centaur ...wait
+matchwait
+
+Magpie:
+pause
+put center my tele on Magpie 
+wait
+put peer my tele
+match constellation Roundtime
+match Magpie ...wait
+matchwait
+
+Weasel:
+pause
+put center my tele on Weasel 
+wait
+put peer my tele
+match constellation Roundtime
+match Weasel ...wait
+matchwait
+
+Kingsnake:
+pause
+put center my tele on King Snake 
+wait
+put peer my tele
+match constellation Roundtime
+match Kingsnake ...wait
+matchwait
+
+Viper:
+pause
+put center my tele on Viper
+wait
+put peer my tele
+match constellation Roundtime
+match Viper ...wait
+matchwait
+
+Albatross:
+pause 
+put center my tele on Albatross 
+wait
+put peer my tele
+match constellation Roundtime
+match Albatross ...wait
+matchwait
+
+Shark:
+pause
+put center my tele on Shark 
+wait
+put peer my tele
+match constellation Roundtime
+match Shark ...wait
+matchwait
+
+Donkey:
+pause 
+put center my tele on Donkey
+wait
+put peer my tele
+match constellation Roundtime
+match Shark ...wait
+matchwait
+
+Coyote:
+pause
+put center my tele on Coyote 
+wait
+put peer my tele
+match constellation Roundtime
+match Coyote ...wait
+matchwait
+
+Dove:
+pause
+put center my tele on Dove
+wait
+put peer my tele
+match constellation Roundtime
+match Dove ...wait
+matchwait
+
+Phoenix:
+pause
+put center my tele on Phoenix 
+wait
+put peer my tele
+match constellation Roundtime
+match Phoenix ...wait
+matchwait
+
+Heron:
+pause
+put center my tele on Heron 
+wait
+put peer my tele
+match constellation Roundtime
+match Heron ...wait
+matchwait
+
+Mongoose:
+pause
+put center my tele on Mongoose 
+wait
+put peer my tele
+match constellation Roundtime
+match Mongoose ...wait
+matchwait
+
+Goshawk:
+pause
+put center my tele on Goshawk 
+wait
+put peer my tele
+match constellation Roundtime
+match Goshawk ...wait
+matchwait
+
+Owl:
+pause
+put center my tele on Owl 
+wait
+put peer my tele
+match constellation Roundtime
+match Owl ...wait
+matchwait
+
+Raccoon:
+pause
+put center my tele on Raccoon 
+wait
+put peer my tele
+match constellation Roundtime
+match Raccoon ...wait
+matchwait
+
+Welkin:
+pause
+put center my tele on Welkin 
+wait
+put peer my tele
+match constellation Roundtime
+match Welkin ...wait
+matchwait
+
+Cow:
+pause
+put center my tele on Cow 
+wait
+put peer my tele
+match constellation Roundtime
+match Cow ...wait
+matchwait
+
+Adder:
+pause
+put center my tele on Adder
+wait
+put peer my tele
+match constellation Roundtime
+match Adder ...wait
+matchwait
+
+Vulture:
+pause
+put center my tele on Vulture
+wait
+put peer my tele
+match constellation Roundtime
+match Vulture ...wait
+matchwait
+
+Shrew:
+pause 
+put center my tele on Shrew 
+wait
+put peer my tele
+match constellation Roundtime
+match Shrew ...wait
+matchwait
+
+Shrike:
+pause
+put center my tele on Shrike 
+wait
+put peer my tele
+match constellation Roundtime
+match Shrike ...wait
+matchwait
+
+Jackal:
+pause
+put center my tele on Jackal
+wait
+put peer my tele
+match constellation Roundtime
+match Jackal ...wait
+matchwait
+
+Spider:
+pause
+put center my tele on Spider 
+wait
+put peer my tele
+match constellation Roundtime
+match Spider ...wait
+matchwait
+
+Giant:
+pause
+put center my tele on Giant 
+wait
+put peer my tele
+match constellation Roundtime
+match Giant ...wait
+matchwait
+
+Hare:
+pause
+put center my tele on Hare 
+wait
+put peer my tele
+match constellation Roundtime
+match Hare ...wait
+matchwait
+
+Verena:
+pause
+put center my tele on Verena 
+wait
+put peer my tele
+match constellation Roundtime
+match Verena ...wait
+matchwait
+
+Toad:
+pause
+put center my tele on Toad 
+wait
+put peer my tele
+match constellation Roundtime
+match Toad ...wait
+matchwait
+
+Archer:
+pause
+put center my tele on Archer 
+wait
+put peer my tele
+match constellation Roundtime
+match Archer ...wait
+matchwait
+
+Estrilda:
+pause
+put center my tele on Estrilda 
+wait
+put peer my tele
+match constellation Roundtime
+match Estrilda ...wait
+matchwait
+
+Brigantine:
+pause 
+put center my tele on Brigantine 
+wait
+put peer my tele
+match constellation Roundtime
+match Brigantine ...wait
+matchwait
+
+Scales:
+pause
+put center my tele on Scales 
+wait
+put peer my tele
+match constellation Roundtime
+match Scales ...wait
+matchwait
+
+Durgaulda:
+pause
+put center my tele on Durgaulda 
+wait
+put peer my tele
+match constellation Roundtime
+match Durgaulda ...wait
+matchwait
+
+Triquetra:
+pause
+put center my tele on Triquetra 
+wait
+put peer my tele
+match constellation Roundtime
+match Triquetra ...wait
+matchwait
+
+Yoakena:
+pause
+put center my tele on Yoakena 
+wait
+put peer my tele
+match constellation Roundtime
+match Yoakena ...wait
+matchwait
+
+Penhetia:
+pause
+put center my tele on Penhetia 
+wait
+put peer my tele
+match constellation Roundtime
+match Penhetia ...wait
+matchwait
+
+Szeldia:
+pause
+put center my tele on Szeldia 
+wait
+put peer my tele
+match constellation Roundtime
+match Szeldia ...wait
+matchwait
+
+Merewalda:
+pause
+put center my tele on Merewalda 
+wait
+put peer my tele
+match constellation Roundtime
+match Merewalda ...wait
+matchwait
+
+Ismenia:
+pause
+put center my tele on Ismenia 
+wait 
+put peer my tele
+match constellation Roundtime
+match Ismenia ...wait
+matchwait
+
+Morleena:
+pause
+put center my tele on Morleena 
+wait
+put peer my tele
+match constellation Roundtime
+match Ismenia ...wait
+matchwait
+
+Amlothi:
+pause
+put center my tele on Amlothi 
+wait
+put peer my tele
+match constellation Roundtime
+match Ismenia ...wait
+matchwait
+
+Dawgolesh:
+pause
+put center my tele on Dawgolesh 
+wait
+put peer my tele
+match constellation Roundtime
+match Ismenia ...wait
+matchwait
+
+Er'qutra:
+pause
+put center my tele on Er'qutra
+wait
+put peer my tele
+match constellation Roundtime
+match Er'qutra ...wait
+matchwait
+
+KForge:
+pause
+put center my tele on Forge
+wait
+put peer my tele 
+match constellation Roundtime
+match KForge ...wait
+matchwait
+
+DEye:
+pause
+put center my tele on Eye
+wait
+put peer my tele
+match constellation Roundtime
+match DEye ...wait
+matchwait

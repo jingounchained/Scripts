@@ -1,0 +1,20 @@
+Magic.OM.Harness:
+{
+	pause 0.2
+	matchre Magic.OM.Harness %RepeatText
+	matchre Magic.OM.Infuse ^(You reconsider|Strain though you|You tap into the mana)
+	send harness $Enescu.Magic.OM.Amount
+	matchwait 3
+	return
+}
+
+Magic.OM.Infuse:
+{
+	pause 0.2
+	matchre Magic.OM.Infuse %RepeatText
+	matchre Magic.OM.Harness ^You have no harnessed mana
+	matchre return ^Roundtime
+	send infuse OM $Enescu.Magic.OM.Amount
+	matchwait 3
+	return
+}

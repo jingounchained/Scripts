@@ -1,0 +1,234 @@
+spells.MoonMage.Init:
+{
+	var Spells.Inside 0
+	var Spells.CageOfLight.Moon AMBIENT
+	var Spells.Moonblade.Moon INVALID
+	return
+}
+
+Spells.CageOfLight.Check:
+{
+	debug 10
+	GOSUB Spells.AssignMoon CageOfLight
+	if ("%Cast.Condition" = "0") then
+	{
+		GOSUB Spells.CheckMoonJewelry
+		GOSUB Spells.AssignMoon CageOfLight
+	}
+	if ("%Cast.Condition" = "0") then
+	{
+		var Spells.CageOfLight.Moon AMBIENT
+	}
+	GOSUB Spells.Valid
+	debug 0
+	return
+}
+
+Spells.CageOfLight.Cast:
+{
+	var Cast.Target %Spells.CageOfLight.Moon
+	GOSUB Cast.Execute
+	return
+}
+
+Spells.Moonblade.Check:
+{
+	GOSUB Spells.AssignMoon Moonblade
+	if ("%Cast.Condition" = "0") then
+	{
+		GOSUB Spells.CheckMoonJewelry
+		GOSUB Spells.AssignMoon Moonblade
+	}
+	return
+}
+
+Spells.AssignMoon:
+{
+	var SpellNamespace $1
+	if ("$moonXibar" = "TRUE") then 
+	{
+		var Spells.%SpellNamespace.Moon XIBAR
+		GOSUB Spells.Valid
+		return
+	}
+	if ("$moonYavash" = "TRUE") then 
+	{
+		var Spells.%SpellNamespace.Moon YAVASH
+		GOSUB Spells.Valid
+		return
+	}
+	if ("$moonKatamba" = "TRUE") then 
+	{
+		var Spells.%SpellNamespace.Moon KATAMBA
+		GOSUB Spells.Valid
+		return
+	}
+	GOSUB Spells.Invalid
+	return
+}
+
+Spells.CheckMoonJewelry:
+{
+	GOSUB Utility.Command "look at my $Enescu.Guilds.MoonMage.MoonJewelry.Xibar" "^Set within"
+	GOSUB Utility.Command "look at my $Enescu.Guilds.MoonMage.MoonJewelry.Katamba" "^Set within"
+	GOSUB Utility.Command "look at my $Enescu.Guilds.MoonMage.MoonJewelry.Yavash" "^Set within"
+	return
+}
+
+Spells.Shadowling.Check:
+{
+	if ("%ShadowlingInvalid" = "1") then 
+	{
+		GOSUB Spells.Invalid
+		return
+	}
+	if ("%ShadowlingInvalid" = "0") then 
+	{
+		gosub Spells.Valid
+		return
+	}
+	pause 0.1
+	var Cast.Condition 0
+	matchre Spells.Shadowling.Check %Repeat
+	matchre Spells.Shadowling.Valid ^(There is nothing else to face\!|You have nothing)
+	matchre Spells.Shadowling.Invalid ^You splash about in the water\!
+	send splash
+	matchwait 2
+	return
+}
+
+Spells.Shadowling.Valid:
+{
+	var ShadowlingInvalid 0
+	GOTO Spells.Valid
+}
+
+Spells.Shadowling.Invalid:
+{
+	var ShadowlingInvalid 1
+	return
+}
+
+Spells.Shadowling.Cast:
+{
+	GOSUB Cast.Execute
+	debug 10
+	if ("%shadowling" = "\%shadowling") then
+	{
+		if matchre("$monsterlist", "(shadowpanther|shadowtabby|shadowcat)") then
+		{
+			var shadowling $1
+			
+		}
+		else
+		{
+			var shadowling shadowling
+		}
+	}
+	debug 0
+	GOSUB utility.Command "invoke %shadowling" "^Roundtime"
+	return
+}
+
+Spells.SLS.Cast:
+{
+	var Cast.Target spider
+	GOSUB Cast.Execute
+	return
+}
+
+Spells.IOTS.Check:
+{
+	pause 0.1
+	var Cast.Condition 0
+	matchre Spells.IOTS.Check %Repeat
+	matchre Spells.Valid ^You glance up at the sky.
+	matchre Spells.SetInside ^It\'s way too dim to try that\.$
+	matchre Spells.SetInside ^(You glance outside\.|That\'s a bit hard to do while inside\.)
+	send weather
+	matchwait 2
+	return 
+}
+
+Spells.IOTS.Cast:
+{
+	var Cast.Target %IOTS.Target
+	GOSUB Cast.Execute
+	return 
+}
+
+Spells.SetInside:
+{
+	var Spells.Inside 1
+	return
+}
+
+Spells.IOTS.Prep:
+{
+	GOSUB Cast.StartBuff $Enescu.Buffs.%Buffs.Position.BuffSpell $Enescu.Buffs.%Buffs.Position.BuffAmount "" $Enescu.Buffs.%Buffs.Position.BuffChargeCount $Enescu.Buffs.%Buffs.Position.BuffChargeAmount "" "" "-0.5release iots" "-0.5invoke circle"
+	GOSUB Spells.IOTS.FindPlanet
+	var Cast.Target %IOTS.Target
+	# if ("$Enescu.Buffs.%Buffs.Position.BuffFocus" != "") and ("$Enescu.Buffs.%Buffs.Position.BuffFocus" != "0") then GOSUB Cast.InvokeFocus $Enescu.Buffs.%Buffs.Position.BuffFocus $Enescu.Buffs.%Buffs.Position.BuffFocusWorn
+	return
+}
+
+Spells.IOTS.FindPlanet:
+{
+	if ("$Enescu.Guilds.MoonMage.IOTS" = "CHAR/WIS") then var IOTS.Planets Durgaulda|Yoakena|Ismenia|Er\'qutra
+	if ("$Enescu.Guilds.MoonMage.IOTS" = "DISC/INT") then var IOTS.Planets Penhetia|Estrilda|Morleena|Amlothi
+	if ("$Enescu.Guilds.MoonMage.IOTS" = "REF/AGI") then var IOTS.Planets Merewalda|Dawgolesh|Szeldia|Verena
+	GOSUB StowHands
+	GOSUB Astrology.GetTelescope
+	GOSUB utility.Command "Open my telescope" "^(You extend|You try)"
+	GOSUB Spells.IOTS.CheckPlanets 
+	GOSUB utility.Command "Close my telescope" "^(You collapse|You try)"
+	GOSUB Astrology.StoreTelescope
+	return
+}
+
+Spells.IOTS.CheckPlanets:
+{
+	var IOTS.Planet.Position -1
+	
+	Spells.IOTS.CheckPlanets.Increment:
+	math IOTS.Planet.Position add 1
+	if %IOTS.Planet.Position > 3 then GOTO Spells.IOTS.ChangeStatSet
+	
+	Spells.IOTS.CheckPlanets.Internal:
+	matchre Spells.IOTS.CheckPlanets.Internal %Repeat
+	matchre Spells.IOTS.CheckPlanets.Increment ^Your search for
+	matchre Spells.SetInside ^It\'s way too dim to try that\.$
+	matchre Spells.IOTS.CheckPlanets.Found ^You glance down
+	send center my telescope on %IOTS.Planets(%IOTS.Planet.Position);-.1glance
+	matchwait 2
+	goto Spells.IOTS.CheckPlanets.Increment
+}
+
+Spells.IOTS.CheckPlanets.Found:
+{
+	var IOTS.Target %IOTS.Planets(%IOTS.Planet.Position)	
+	return
+}
+
+Spells.IOTS.ChangeStatSet:
+{
+	GOTO Spells.IOTS.CheckPlanets
+}
+
+Spells.SLS.Check:
+{
+	var Cast.Condition 0
+	GOSUB GLOBALTIMER Enescu.Guild.SLS 900 Spells.SLS.CheckStars
+	return
+}
+
+Spells.SLS.CheckStars:
+{
+	var SLS.Target spider
+	
+	matchre Spells.SLS.CheckStars %Repeat
+	matchre return is foiled by the daylight.$|^The pain is too much\.$
+	matchre Spells.Valid it is night\.$
+	send center my telescope on %SLS.Target;-.1glance
+	matchwait 2
+}

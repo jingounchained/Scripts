@@ -1,0 +1,41 @@
+athletics.Init:
+{
+	return
+}
+
+
+Athletics.ClimbRope:
+{
+		send stop climb
+		GOSUB performance.start	
+		Athletics.ClimbRope.Internal:
+		matchre Athletics.Stand You should probably be standing
+		gosub utility.Command "climb climb rope" "^You"
+		matchre Athletics.CheckRoundState ^(You finish practicing|You stop practicing|Your focus diverts away from the rope|The rope\'s will quickly fades away)
+		matchwait 140 
+		gosub Athletics.CheckRoundState
+		return
+}
+
+Athletics.CheckRoundState:
+{
+	gosub skill_manager.GetNextPrimarySkill
+	if (%CurrentPrimarySkill != Athletics) then GOSUB Athletics.End
+	var CurrentPrimarySkill Athletics
+	return
+}
+
+Athletics.End:
+{
+	var CurrentRoundFinished 1
+	GOSUB Stow right
+	GOSUB Stow left
+	return
+}
+
+Athletics.Stand:
+{
+	pause .2
+	GOSUB Stand
+	goto Athletics.ClimbRope
+}

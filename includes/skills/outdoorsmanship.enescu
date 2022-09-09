@@ -1,0 +1,45 @@
+Outdoorsmanship.Init:
+{
+	return
+}
+
+Outdoorsmanship.Start:
+Outdoorsmanship.Round:
+{
+	GOSUB Outdoorsmanship.Collect
+	GOSUB Outdoorsmanship.Kick
+	if (%CurrentPrimarySkill = Outdoorsmanship) or (%CurrentPrimarySkill = Perception) then var CurrentRoundFinished 1
+	return
+}
+
+Outdoorsmanship.Stop:
+{
+	GOSUB Outdoorsmanship.Kick
+	return
+}
+
+Outdoorsmanship.Collect:
+{
+	matchre Outdoorsmanship.Collect %RepeatText
+	matchre Return You manage to collect|Roundtime:
+	send collect $Enescu.Outdoorsmanship.Collect.Noun
+	matchwait 5
+	return
+}	
+
+Outdoorsmanship.Kick:
+{
+	pause .2
+	matchre Outdoorsmanship.Kick %Repeat|^You take
+	matchre Outdoorsmanship.Kick.Stand ^You can't quite
+	matchre return ^I could not find|^Now what
+	if matchre("$roomobjs", "a pile of") then send kick pile
+	matchwait 2
+	return
+}
+
+Outdoorsmanship.Kick.Stand:
+{
+	GOSUB Stand
+	goto Outdoorsmanship.Kick
+}

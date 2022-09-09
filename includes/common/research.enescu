@@ -1,0 +1,132 @@
+research.init:
+{
+	action var Research.Status ACTIVE when ^(You continue to experiment|The symbols and sigils around you seem|Though it is taking much of your|You continue making theoretical)
+	GOSUB Research.Status.None
+	return
+}
+
+research.start:
+{
+
+	GOSUB Research.Status
+	if ("%Research.Status" = "NONE") then 
+	{
+		GOSUB skill_manager.GetNextResearch
+		GOSUB Research.GetAppropriateTopic
+		GOSUB Research %Research.Topic
+	}
+	if ("%Research.Status" = "CONTINUE") then 
+	{
+		GOSUB Research %Research.Topic
+	}
+	if ("%Research.Status" = "NoGAF") then 
+	{
+		GOSUB Cast GAF 20 "" 4 20
+		GOTO research.start
+	}
+	return
+}
+
+Research.Status:
+{
+
+	matchre Research.Status.None You\'re not researching anything\!
+	matchre Research.Status.Active You estimate that you will complete it 
+	matchre Research.Status.Continue ^You have completed [\d].\% of a project about (Fundamental Research|Mana Stream Theory|Augmentation Patterns Research|Utility Patterns Research|Warding Patterns Research|Sorcerous Research|High Energy Spellcasting|Mana Field Theory|Plane of Probability|Elemental Planes|Spell Research)
+	matchre Research.Status.NoGAF ^You require some special means 
+	send research status
+	matchwait 5
+	var Research.Status NONE
+	return
+	
+}
+
+Research.Status.None:
+{
+	var Research.Status NONE
+	return
+}
+
+Research.Status.Active:
+{
+	var Research.Status ACTIVE
+	return
+}
+
+Research.Status.NoGAF:
+{
+	var Research.Status NoGAF
+	return
+}
+
+Research.Status.Continue:
+{
+	var Research.Status CONTINUE
+	if ("$1" = "Fundamental Research") then var Research.Topic FUNDAMENTAL
+	if ("$1" = "Mana Stream Theory") then var Research.Topic STREAM
+	if ("$1" = "Augmentation Patterns Research") then var Research.Topic AUGMENTATION
+	if ("$1" = "Utility Patterns Research") then var Research.Topic UTILITY
+	if ("$1" = "Warding Patterns Research") then var Research.Topic WARDING	
+	if ("$1" = "Sorcerous Research") then var Research.Topic SORCERY
+	if ("$1" = "High Energy Spellcasting") then var Research.Topic ENERGY
+	if ("$1" = "Mana Field Theory") then var Research.Topic FIELD
+	if ("$1" = "Plane of Probability") then var Research.Topic PLANE
+	if ("$1" = "Elemental Planes") then var Research.Topic PLANES
+	if ("$1" = "Spell Research") then var Research.Topic SPELL
+	
+	return
+}
+
+Research:
+{
+	var Research.Topic $1
+	Research.Internal:
+	{
+		matchre Research.Internal %Repeat
+		matchre Research.Status.Active ^You are already busy at research
+		matchre Research.Status.NoGAF ^You require some special means 
+		matchre Research.Status.Active ^(You begin to bend the mana streams|You expertly coach yourself into an)
+		send research %Research.Topic 300
+		matchwait 5
+	}
+	return
+}
+
+
+Research.GetAppropriateTopic:
+{
+	if ("%Research.Skill" = "Augmentation") then 
+	{
+		if ($Arcana.Ranks >= 1000) then var Research.Topic SPELL
+		else if ($Arcana.Ranks >= 60) then var Research.Topic AUGMENTATION
+	}
+	else if ("%Research.Skill" = "Primary_Magic") then 
+	{
+		var Research.Topic FUNDAMENTAL
+		if ($Arcana.Ranks >= 750) then var Research.Topic FIELD
+	}
+	else if ("%Research.Skill" = "Utility") then 
+	{
+		if ($Arcana.Ranks >= 1000) then var Research.Topic SPELL
+		else if ($Arcana.Ranks >= 60) then var Research.Topic UTILITY
+	}
+	else if ("%Research.Skill" = "Warding") then 
+	{
+		if ($Arcana.Ranks >= 1000) then var Research.Topic SPELL
+		else if ($Arcana.Ranks >= 60) then var Research.Topic WARDING
+	}
+	else if ("%Research.Skill" = "Attunement") then 
+	{
+		if ($Arcana.Ranks >= 750) then var Research.Topic FIELD
+		if ($Arcana.Ranks >= 500) then var Research.Topic ENERGY
+		if ($Arcana.Ranks >= 60) then var Research.Topic STREAM
+	}
+	else if ("%Research.Skill" = "Sorcery") and ($Arcana.Ranks >= 250) then 
+	{
+		if ($Arcana.Ranks >= 750) then var Research.Topic FIELD
+		else if ($Arcana.Ranks >= 250) then var Research.Topic SORCERY
+	}
+	else if ("%Research.Skill" = "Astrology") then var Research.Topic PLANE
+	else if ("%Research.Skill" = "Summoning") then var Research.Topic PLANES
+	return 
+}

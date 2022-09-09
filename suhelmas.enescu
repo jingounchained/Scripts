@@ -1,0 +1,99 @@
+## SET THIS TO 1 IF YOU ARE AN EMPATH OR ELSE YOU WILL GET EMPATHIC SHOCK
+## SET THIS TO 1 IF YOU ARE AN EMPATH OR ELSE YOU WILL GET EMPATHIC SHOCK
+## SET THIS TO 1 IF YOU ARE AN EMPATH OR ELSE YOU WILL GET EMPATHIC SHOCK
+var empath 0
+
+
+## Set magic to 1 if your character can use magic. 
+## The commands it uses require the ability to use magic, 
+## such as charging and focusing things, perceiving, etc.
+## otherwise set to anything else. 
+
+var magic 1
+
+
+## This is the container you're going to put all your incidentals into. 
+## It will dump them at your feet if it gets full.
+
+var container sack.in.my.pack
+
+## If you are turning off Magic, set a weapon because you'll need it to break some obstacles.
+
+var weapon cutlass
+
+
+#############s BEGIN SCRIPT ###################
+
+var Repeat ^(\.\.\.wait|Sorry\, you may only type ahead|You are still stunned|\[If you are certain|Stow what)
+
+action put #echo >ScriptLog SH: $1 when Your guide gently sets (.*) at your feet.  
+action put #echo >ScriptLog SH: $1;var hand $2 when Your guide shoves (.*) into your (left|right) hand
+
+
+if (%empath = 1) then var finale TOUCH
+else var finale SMITE
+
+
+action var NextCommand JOIN EMPATH when ^Most of the encroaching sand has been cleared away
+
+action put #echo >ScriptLog Out of Su Helmas Contracts!;goto exit when ^An empath wreathed in violet robes says\, \"Sorry\, 
+
+
+
+
+if (%magic = 1) then 
+{
+action (magic) var NextCommand INVOKE when ^Barren stone walls give way to a vaulted ceiling
+action (magic) var NextCommand FOCUS SIGIL when ^You stand in a sandstone corridor
+action (magic) var NextCommand MOVE DARKNESS when ^Semi-solid darkness hangs along the perimeter of the room
+action (magic) var NextCommand PERCEIVE when ^Trapped within the tight confines of a twisting stairwell
+action (magic) var NextCommand MEDITATE when ^The sweet smell of fungal spores intrudes on your sense 
+action (magic) var NextCommand READ when ^Walls of clumpy dirt interspersed with rocks 
+action (magic) var NextCommand CHARGE when ^You've found yourself in a natural cavern
+}
+else
+{
+action (NMU) var NextCommand BREAK when ^Barren stone walls give way to a vaulted ceiling
+action (NMU) var NextCommand CRAWL when ^You stand in a sandstone corridor
+action (NMU) var NextCommand MOVE DARKNESS when ^Semi-solid darkness hangs along the perimeter of the room
+action (NMU) var NextCommand SEARCH when ^Trapped within the tight confines of a twisting stairwell
+action (NMU) var NextCommand SCREAM when ^The sweet smell of fungal spores intrudes on your sense 
+action (NMU) var NextCommand CLIMB when ^Walls of clumpy dirt interspersed with rocks 
+action (NMU) var NextCommand DODGE when ^You've found yourself in a natural cavern
+}
+
+action var NextCommand %finale when ^It's called a Seed of Entropy
+
+START:
+send join empath
+if (%magic != 1) and ("%weapon" != "\%weapon") and ("$righthandnoun" = "") then send wield my %weapon
+pause 2
+
+COMMAND:
+{
+	matchre COMMAND %Repeat
+	matchre COMMAND ^(Roundtime|\[Beneath Su Helmas\])
+	matchre STOW ^You retain enough volition to strike out
+	send %NextCommand
+	matchwait 15
+	goto COMMAND
+}
+
+
+STOW:
+{
+	pause 5
+	if (%magic != 1) or ("%hand" = "\%hand") then var hand left
+	matchre STOW %Repeat
+	matchre START ^You put your
+	send put my $lefthandnoun in my %container
+	send put my $righthandnoun in my %container
+	matchwait 2
+	echo You seem to be unable to put away whatever is in your hands. Or something. I dunno, script stalled. Join the empath to continue.
+	wait 120
+	echo Aight then
+	goto start
+}
+
+EXIT:
+exit

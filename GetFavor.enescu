@@ -1,0 +1,108 @@
+#Favor puzzle
+
+action goto done when ^A soft voice echoes in your mind
+
+if def(1) then var god $1
+else var god mErAuD
+
+
+start:
+{
+	put pray
+	put pray
+	pause
+	put pray
+	pause
+	put pray
+	pause
+	put pray
+	pause
+	put 'Meraud
+	pause
+	put stand
+	put get orb
+}
+
+GOARCH:
+pause
+match GOARCH ...wait
+match DONE You feel giddy all over
+match JUG jug
+match TINDERS tinders
+match VASE vase
+match SPONGE sponge
+match WINDOW directly opposite an ancient window.
+match start What were you referring
+send go arch
+matchwait
+
+VASE:
+pause
+put get flower
+goto LEAVEROOM
+
+JUG:
+pause
+put fill font with jug
+goto LEAVEROOM
+
+TINDERS:
+pause
+put light candle with tinders
+goto LEAVEROOM
+
+SPONGE:
+pause
+put clean altar with sponge
+goto LEAVEROOM
+
+WINDOW:
+pause
+put open window
+pause
+put open window
+pause
+put open window
+pause
+put open window
+pause
+put open window
+pause
+put open window
+pause
+put open window
+pause
+put open window
+pause
+goto LEAVEROOM
+
+LEAVEROOM:
+put go stair
+pause
+match DONE You feel giddy all over
+match JUG jug
+match TINDERS tinders
+match SPONGE sponge
+match WINDOW directly opposite an ancient window.
+match LOOK It would be difficult to go through the door
+match LEAVEROOM ...wait
+match LOOK You cannot go there.
+put go door
+put go window
+pause 1
+put go path
+matchwait
+
+LOOK:
+pause
+match JUG jug
+match TINDERS tinders
+match SPONGE sponge
+match WINDOW directly opposite an ancient window.
+put look
+matchwait
+
+DONE:
+send stow my orb
+put #parse FAVOR ORB ACQUIRED
+EXIT

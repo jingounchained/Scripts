@@ -1,0 +1,17 @@
+gosub utility.Init
+goto start
+
+include /includes/common/utility.enescu
+
+start:
+GOSUB StowHands
+GOSUB GET $Enescu.Guilds.Cleric.HolyWater
+GOSUB utility.Command "sprinkle $Enescu.Guilds.Cleric.HolyWater at $charactername" "You sprinkle yourself"
+GOSUB STOW $Enescu.Guilds.Cleric.HolyWater
+GOSUB GET $Enescu.Guilds.Cleric.Lighter
+GOSUB utility.Command "point $Enescu.Guilds.Cleric.Lighter at my incense" "You"
+GOSUB GET incense
+GOSUB utility.Command "wave my incense at $charactername" "You"
+GOSUB utility.Command "snuff my incense" "You"
+GOSUB StowHands
+send Commune Meraud

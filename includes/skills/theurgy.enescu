@@ -1,0 +1,70 @@
+
+###############
+#CLERIC - Theurgy
+###############
+
+###############
+#Initialization
+###############
+
+Theurgy.Init:
+{
+	action var CommuneActive 0 when ^(The holy presence in the area fades quietly away\.|You sense your connection to the area you consecrated earlier fade away\.)$
+
+	var CommuneActive 0
+	
+	echo Theurgy Module Initialized
+	return
+}
+
+Theurgy.Config:
+{
+	return
+}
+
+Theurgy.Round:
+Theurgy.Start:
+{
+	GOSUB Theurgy.DeployRoll
+	GOSUB Theurgy.Dance
+	var CurrentRoundFinished 1
+	return
+}
+
+Theurgy.Dance:
+{
+	matchre Theurgy.Dance %Repeat
+	matchre Theurgy.Dance.GetMat ^Maybe you should unroll
+	matchre Theurgy.Dance.Done you sense the eyes of the gods upon you|You get a sense that|conclusion
+	matchre Theurgy.Dance Roundtime
+	send dance my mat
+	matchwait 1
+	goto Theurgy.Dance
+}
+
+Theurgy.Dance.GetMat:
+{
+	gosub StowHands
+	gosub Theurgy.DeployRoll
+	goto Theurgy.Dance
+}
+
+Theurgy.Dance.Done:
+{
+	gosub Theurgy.StowRoll
+	return
+}
+
+
+Theurgy.DeployRoll:
+{
+	gosub get "prayer mat"
+	gosub utility.Command "unroll my prayer mat" "^You reverently lay"
+	return
+}
+
+Theurgy.StowRoll:
+{
+	gosub utility.Command "roll my prayer mat" "You carefully gather up"
+	gosub stow "prayer mat"
+}

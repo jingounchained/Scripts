@@ -1,0 +1,3 @@
+include includes/common/includes.enescu
+include includes/training/training_skill_manager.enescu
+include includes/training/training_primary_rounds.enescu

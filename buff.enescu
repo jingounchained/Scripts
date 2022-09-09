@@ -1,0 +1,27 @@
+GOSUB INIT
+Buff.INIT:
+{
+	if ("%1" > 0) then
+	{
+		var DurationUnderWhichToRecast %1
+	}
+	else
+	{
+		var DurationUnderWhichToRecast 1000
+	}
+	
+	var BuffIndex 0
+	
+	GOTO Start
+}
+
+include /includes/common/includes.enescu
+
+Start:
+{
+	if ("$Enescu.Buffs.%BuffIndex.BuffSpell" != "$Enescu.Buffs.%BuffIndex.BuffSpell")
+	{
+		GOSUB CastNextBuff
+		GOTO Start
+	}
+}

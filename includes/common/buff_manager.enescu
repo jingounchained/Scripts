@@ -1,0 +1,148 @@
+buff_manager.Init:
+{
+	var Buffs.Position 0
+	var buff_manager.CombatScript 0
+	var Buffs.Casting None
+	return
+}
+
+buff_manager.FullyCastNextBuff:
+{
+
+	if def(Enescu.Buffs.%Buffs.Position.BuffSpellTimerName) then 
+	{
+		if ("$Enescu.Buffs.%Buffs.Position.BuffSpellTimerName" = "OsrelMeraud") or ("$SpellTimer.$Enescu.Buffs.%Buffs.Position.BuffSpellTimerName.duration" = "OM")  or ("$SpellTimer.$Enescu.Buffs.%Buffs.Position.BuffSpellTimerName.duration" = "999" and "$guild" = "Cleric") then
+		{
+			math Buffs.Position add 1
+			if ($SpellTimer.OsrelMeraud.duration < 90) then
+			{
+				GOSUB Magic.OM.Infuse
+				return
+			}
+			return
+		}
+	}
+	if def(Enescu.Buffs.%Buffs.Position.BuffCombat) then
+	{
+		if ("$Enescu.Buffs.%Buffs.Position.BuffCombat" = "%buff_manager.CombatScript") then
+		{
+			GOSUB buff_manager.PrepNextBuff
+			if (%Cast.Ready != 1) and ("$preparedspell" != "None") then waiteval (%Cast.Ready = 1)
+			GOSUB buff_manager.Cast
+		}
+	}
+	
+	return
+}
+
+buff_manager.UseFocus:
+{
+	GOSUB Utility.EmptyHands
+	if ("$Enescu.Buffs.%Buffs.Position.BuffFocusWorn" = "1") then 
+	{
+		GOSUB Remove %UseFocus
+	}
+	else
+	{
+		GOSUB Get %UseFocus
+	}
+	GOSUB Magic.Focus.Invoke
+	
+	if ("$Enescu.Buffs.%Buffs.Position.BuffFocusWorn" = "1") then 
+	{
+		GOSUB Wear %UseFocus
+	}
+	else
+	{
+		GOSUB Stow %UseFocus
+	}
+	var UseFocus 0
+	return
+}
+
+buff_manager.PrepNextBuff:
+{
+	
+	if !def(Enescu.Buffs.0.BuffSpell) then return
+	if def(Enescu.Buffs.%Buffs.Position.BuffSpell) then 
+	{
+		if ("$Enescu.Buffs.%Buffs.Position.BuffSpell" = "0") or ("$Enescu.Buffs.%Buffs.Position.BuffSpell" = "") then return
+	}
+	var currentPosition %Buffs.Position
+
+	buff_manager.PrepNextBuff.Internal:
+	
+	math Buffs.Position add 1
+	
+	if (%currentPosition = %Buffs.Position) then return
+	if !def(Enescu.Buffs.%Buffs.Position.BuffSpell) or ($Enescu.Buffs.%Buffs.Position.BuffSpell = 0) then 
+	{
+		var Buffs.Position -1
+		goto buff_manager.PrepNextBuff.Internal
+	}
+	
+	unvar Cast.Condition
+	if ($Enescu.Buffs.%Buffs.Position.BuffCombat = 0) and (%buff_manager.CombatScript = 1) then return
+	if !contains("Barbarian|Commoner|Thief", "$guild") and (($SpellTimer.$Enescu.Buffs.%Buffs.Position.BuffSpellTimerName.duration > 5) or ($mana < 50)) then return
+	if ("$guild" = "Thief") and ($SpellTimer.$Enescu.Buffs.%Buffs.Position.BuffSpellTimerName.active = 1) then return
+	
+	if ("$Enescu.Buffs.%Buffs.Position.BuffConditionSub" != "0") and ("$Enescu.Buffs.%Buffs.Position.BuffConditionSub" != "\$Enescu.Buffs.%Buffs.Position.BuffConditionSub") then GOSUB $Enescu.Buffs.%Buffs.Position.BuffConditionSub
+	else var Cast.Condition 1
+	
+	if (%Cast.Condition = 1) then GOSUB buff_manager.CastNextBuff.StartNextBuff
+	else goto buff_manager.PrepNextBuff.Internal
+	
+	unvar currentPosition
+	return
+}
+
+buff_manager.CastNextBuff.StartNextBuff:
+{
+		if ("$guild" = "Thief") then 
+		{
+			GOSUB khri $Enescu.Buffs.%Buffs.Position.BuffSpell
+		}
+		else
+		{
+			if ("$Enescu.Buffs.%Buffs.Position.BuffPrepSub" != "0") and def(Enescu.Buffs.%Buffs.Position.BuffPrepSub) then 
+			{
+				GOSUB $Enescu.Buffs.%Buffs.Position.BuffPrepSub
+			}	
+			if ("$Enescu.Buffs.%Buffs.Position.BuffCastSub" != "0") and def(Enescu.Buffs.%Buffs.Position.BuffCastSub) then 
+			{
+				var buff_manager.CastSub $Enescu.Buffs.%Buffs.Position.BuffCastSub
+			}	
+			else 
+			{
+				var buff_manager.CastSub Cast.Execute
+			}
+			GOSUB Cast.StartBuff "$Enescu.Buffs.%Buffs.Position.BuffSpell" $Enescu.Buffs.%Buffs.Position.BuffAmount "" $Enescu.Buffs.%Buffs.Position.BuffChargeCount $Enescu.Buffs.%Buffs.Position.BuffChargeAmount
+			
+			if ("$Enescu.Buffs.%Buffs.Position.BuffFocus" != "0") then GOSUB Cast.InvokeFocus "$Enescu.Buffs.%Buffs.Position.BuffFocus" $Enescu.Buffs.%Buffs.Position.BuffFocusWorn
+			GOSUB Cambrinth.Charge
+		}
+
+	if ("$preparedspell" != "None") then var Buffs.Casting $preparedspell
+
+	return
+}
+
+buff_manager.Cast:
+{
+	if (%Cast.Ready != 1) or ("$preparedspell" != "%Buffs.Casting") then return
+	if ("$Enescu.Buffs.%Buffs.Position.BuffCastSub" != "0") and def(Enescu.Buffs.%Buffs.Position.BuffCastSub) then 
+	{
+		GOSUB $Enescu.Buffs.%Buffs.Position.BuffCastSub
+	}
+	else 
+	{
+		if contains("Barbarian|Commoner|Thief", "$guild") then return
+		else GOSUB Cast.Execute
+	}
+	return
+}
+
+buff_manager.EnableCombatBuffs:
+{
+	var buff_manager.CombatScript 0
+}

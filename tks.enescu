@@ -1,0 +1,32 @@
+GOSUB Init
+TKS.Init:
+{
+	var buff_manager.CombatScript 1
+	var tks.charges 2
+	var tks.amount 40
+	goto start
+}
+
+include includes/common/includes.enescu
+
+start:
+GOSUB buff_manager.FullyCastNextBuff
+GOSUB Spells.Moonblade.Check
+if (%Cast.Condition = 1 and $SpellTimer.MoonbladeSlivers.duration < 2) then
+{
+	GOSUB Spells.AssignMoon Moonblade
+	GOSUB Cast Moonblade 20 %Spells.Moonblade.Moon 2 40 "" "" "" "break moonblade"
+	GOSUB Cast TKS 20 "" %tks.charges %tks.amount "" "target creatures" "" ""
+}
+
+if ("$monsterlist" != "" and $SpellTimer.MoonbladeSlivers.duration > 0) then
+{
+	GOSUB Cast TKS 20 "" %tks.charges %tks.amount "" "target creatures" "" ""
+}
+else
+{
+	pause 5
+}
+
+
+goto start

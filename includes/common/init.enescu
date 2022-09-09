@@ -1,0 +1,25 @@
+INIT:
+{
+	GOSUB athletics.Init
+	GOSUB attunement.Init
+	GOSUB appraisal.Init
+	GOSUB firstaid.Init
+	GOSUB locksmithing.Init
+	GOSUB outdoorsmanship.Init
+	GOSUB performance.Init
+	GOSUB utility.Init
+	
+	GOSUB cast.Init
+	GOSUB research.Init
+	GOSUB skill_manager.Init
+	GOSUB buff_manager.Init
+	GOSUB combat_manager.Init
+	GOSUB weapon_manager.Init
+	
+	if ("$guild" = "Moon Mage") then GOSUB astrology.Init
+	if ("$guild" = "Bard") then GOSUB bardiclore.Init
+	if ("$guild" = "Thief") then GOSUB khri.Init
+	if ("$guild" = "Cleric") then GOSUB theurgy.Init
+	if ("$guild" = "Empath") then GOSUB empathy.Init
+	return
+}

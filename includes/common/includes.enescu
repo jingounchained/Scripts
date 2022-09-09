@@ -1,0 +1,15 @@
+include includes/common/cast.enescu
+include includes/common/khri.enescu
+include includes/common/utility.enescu
+include includes/common/research.enescu
+include includes/common/init.enescu
+
+include includes/common/skill_manager.enescu
+include includes/common/buff_manager.enescu
+include includes/common/combat_manager.enescu
+include includes/common/weapon_manager.enescu
+include includes/common/magic.enescu
+
+include includes/skills/includes.enescu
+
+include includes/spells/includes.enescu

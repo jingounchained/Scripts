@@ -1,0 +1,6 @@
+include includes/spells/common.enescu
+include includes/spells/bard.enescu
+include includes/spells/moonmage.enescu
+include includes/spells/cleric.enescu
+include includes/spells/empath.enescu
+include includes/spells/warriormage.enescu

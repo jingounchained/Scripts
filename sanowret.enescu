@@ -1,0 +1,48 @@
+start:
+{
+	if ($concentration = 100 and $Arcana.LearningRate < 26) then
+	{
+		GOSUB Gaze
+	}
+	else if ($concentration = 100 and $Arcana.LearningRate < 30) then
+	{
+		GOSUB Exhale
+	}
+	else
+	{
+		GOSUB WaitLong
+	}
+	GOTO start
+}
+
+Exhale:
+{
+	matchre Exhale type ahead
+	matchre WaitLong You hear in your mind
+	matchre WaitShort However, nothing much
+	send exhale my sanowret crystal
+	matchwait 30
+	return
+}
+
+Gaze:
+{
+	matchre Gaze type ahead
+	matchre WaitLong A soft light blossoms
+	matchre WaitShort However, nothing much
+	send gaze my sanowret crystal
+	matchwait 30
+	return
+}
+
+WaitLong:
+{
+	delay 200
+	return
+}
+
+WaitShort:
+{
+	delay 20
+	return
+}
